@@ -101,13 +101,14 @@ export const ChatProvider = ({ children }) => {
         }
     }, [socket, currentChat]);
 
-    const sendMessage = (text) => {
+    const sendMessage = (text, attachments = []) => {
         if (!socket || !currentChat) return;
 
         const messageData = {
             conversationId: currentChat._id,
             sender: user._id,
-            text: text
+            text: text,
+            attachments: attachments
         };
 
         // Emit to server
@@ -134,7 +135,7 @@ export const ChatProvider = ({ children }) => {
             if (conv._id === currentChat._id) {
                 return {
                     ...conv,
-                    lastMessage: text,
+                    lastMessage: text || (attachments.length ? 'Sent an attachment' : ''),
                     updatedAt: new Date().toISOString()
                 };
             }

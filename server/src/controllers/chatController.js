@@ -72,3 +72,24 @@ exports.getMessages = async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 };
+// @desc    Upload chat attachment
+// @route   POST /api/chat/upload
+// @access  Private
+exports.uploadAttachment = async (req, res) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ message: 'No files uploaded' });
+        }
+
+        const attachments = req.files.map(file => ({
+            url: file.path,
+            fileType: file.mimetype.split('/')[0], // 'image', 'application', etc.
+            originalName: file.originalname
+        }));
+
+        res.status(200).json(attachments);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Upload failed' });
+    }
+};

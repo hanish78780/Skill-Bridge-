@@ -2,7 +2,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useChat } from '../context/ChatContext';
 import { useAuth } from '../context/AuthContext';
-import { Send, User } from 'lucide-react';
+import { Send, User, Paperclip, X, File } from 'lucide-react';
+import axios from 'axios';
 
 const Chat = () => {
     const { user } = useAuth();
@@ -18,7 +19,10 @@ const Chat = () => {
     } = useChat();
 
     const [newMessage, setNewMessage] = useState('');
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [isUploading, setIsUploading] = useState(false);
     const messagesEndRef = useRef(null);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         fetchConversations();
@@ -32,11 +36,51 @@ const Chat = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const handleSend = (e) => {
+    const handleFileSelect = (e) => {
+        if (e.target.files) {
+            setSelectedFiles((prev) => [...prev, ...Array.from(e.target.files)]);
+        }
+    };
+
+    const removeFile = (index) => {
+        setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const uploadFiles = async () => {
+        if (selectedFiles.length === 0) return [];
+
+        const formData = new FormData();
+        selectedFiles.forEach(file => {
+            formData.append('files', file);
+        });
+
+        const { data } = await axios.post('/chat/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return data; // Array of { url, fileType, originalName }
+    };
+
+    const handleSend = async (e) => {
         e.preventDefault();
-        if (newMessage.trim()) {
-            sendMessage(newMessage);
+
+        if (!newMessage.trim() && selectedFiles.length === 0) return;
+
+        setIsUploading(true);
+        try {
+            let attachments = [];
+            if (selectedFiles.length > 0) {
+                attachments = await uploadFiles();
+            }
+
+            sendMessage(newMessage, attachments);
             setNewMessage('');
+            setSelectedFiles([]);
+        } catch (error) {
+            console.error("Failed to send message", error);
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -145,7 +189,27 @@ const Chat = () => {
                                                         : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white rounded-bl-none'
                                                         }`}
                                                 >
-                                                    <p>{msg.text}</p>
+                                                    {/* Text Content */}
+                                                    {msg.text && <p>{msg.text}</p>}
+
+                                                    {/* Attachments */}
+                                                    {msg.attachments && msg.attachments.length > 0 && (
+                                                        <div className="mt-2 space-y-2">
+                                                            {msg.attachments.map((att, idx) => (
+                                                                <div key={idx}>
+                                                                    {att.fileType === 'image' ? (
+                                                                        <img src={att.url} alt="attachment" className="rounded-lg max-h-48 object-cover cursor-pointer hover:opacity-90" onClick={() => window.open(att.url, '_blank')} />
+                                                                    ) : (
+                                                                        <a href={att.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-2 rounded-lg ${isMyMessage ? 'bg-indigo-700 hover:bg-indigo-800' : 'bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500'} transition-colors`}>
+                                                                            <File className="h-4 w-4" />
+                                                                            <span className="text-sm underline truncate">{att.originalName || 'Download File'}</span>
+                                                                        </a>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
                                                     <p className={`text-[10px] mt-1 text-right ${isMyMessage ? 'text-indigo-200' : 'text-gray-400'
                                                         }`}>
                                                         {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -161,7 +225,40 @@ const Chat = () => {
 
                         {/* Input Area */}
                         <form onSubmit={handleSend} className="p-4 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
+                            {/* File Preview */}
+                            {selectedFiles.length > 0 && (
+                                <div className="flex gap-2 mb-2 overflow-x-auto pb-2">
+                                    {selectedFiles.map((file, i) => (
+                                        <div key={i} className="relative group bg-gray-100 dark:bg-gray-700 rounded-lg p-2 min-w-[80px] max-w-[120px] flex flex-col items-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => removeFile(i)}
+                                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition-colors"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                            <span className="text-xs truncate w-full text-center mt-1 dark:text-gray-300">{file.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
                             <div className="flex gap-2">
+                                <input
+                                    type="file"
+                                    multiple
+                                    className="hidden"
+                                    ref={fileInputRef}
+                                    onChange={handleFileSelect}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="p-3 rounded-xl border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+                                    title="Attach files"
+                                >
+                                    <Paperclip className="h-5 w-5" />
+                                </button>
                                 <input
                                     type="text"
                                     value={newMessage}
@@ -171,10 +268,14 @@ const Chat = () => {
                                 />
                                 <button
                                     type="submit"
-                                    disabled={!newMessage.trim()}
-                                    className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                                    disabled={(!newMessage.trim() && selectedFiles.length === 0) || isUploading}
+                                    className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center justify-center min-w-[3rem]"
                                 >
-                                    <Send className="h-5 w-5" />
+                                    {isUploading ? (
+                                        <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <Send className="h-5 w-5" />
+                                    )}
                                 </button>
                             </div>
                         </form>

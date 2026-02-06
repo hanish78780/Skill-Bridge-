@@ -165,14 +165,10 @@ const forgotPassword = async (req, res, next) => {
             await sendResetPasswordEmail(user, resetUrl);
             res.status(200).json({ message: 'Email sent' });
         } catch (error) {
-            console.error('Email send failed:', error);
-            // Don't delete the token if email fails, so we can use the console log link
-            // user.resetPasswordToken = undefined;
-            // user.resetPasswordExpire = undefined;
-            // await user.save({ validateBeforeSave:            
-            // Still return 200 so the frontend shows success message
-            // The user can find the link in the server logs
-            return res.status(200).json({ message: 'Email sent (or check server logs for link)' });
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+            await user.save({ validateBeforeSave: false });
+            return res.status(500).json({ message: 'Email could not be sent' });
         }
 
     } catch (error) {

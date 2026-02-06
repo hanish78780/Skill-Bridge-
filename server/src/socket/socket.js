@@ -40,7 +40,8 @@ const initSocket = (server) => {
                 const newMessage = await Message.create({
                     conversationId: data.conversationId,
                     sender: data.sender, // User ID
-                    text: data.text
+                    text: data.text,
+                    attachments: data.attachments || []
                 });
 
                 // Update conversation last message
