@@ -13,8 +13,7 @@ const messageSchema = new mongoose.Schema({
         required: true
     },
     text: {
-        type: String,
-        required: true
+        type: String
     },
     read: {
         type: Boolean,
