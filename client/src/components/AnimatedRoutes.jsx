@@ -1,5 +1,5 @@
 
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AnimatePresence } from 'framer-motion';
 import Home from '../pages/Home';
@@ -17,6 +17,7 @@ import Chat from '../pages/Chat';
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
 import AdminLayout from './Layout/AdminLayout';
+import Layout from './Layout';
 import AdminDashboard from '../pages/Admin/AdminDashboard';
 import AdminUsers from '../pages/Admin/AdminUsers';
 import AdminReports from '../pages/Admin/AdminReports';
@@ -28,21 +29,24 @@ const AnimatedRoutes = () => {
     return (
         <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-                <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
-                <Route path="/auth/success" element={<AuthSuccess />} />
+                {/* Public & Protected Routes Wrapped in Main Layout */}
+                <Route element={<Layout><Outlet /></Layout>}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+                    <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
+                    <Route path="/auth/success" element={<AuthSuccess />} />
 
-                {/* Protected Routes */}
-                <Route element={<ProtectedRoute />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/talent" element={<TalentSearch />} />
-                    <Route path="/chat" element={<Chat />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/projects" element={<Projects />} />
-                    <Route path="/projects/new" element={<ProjectForm />} />
-                    <Route path="/projects/:id" element={<ProjectDetails />} />
-                    <Route path="/projects/:id/edit" element={<ProjectForm />} />
+                    {/* Protected Routes */}
+                    <Route element={<ProtectedRoute />}>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/talent" element={<TalentSearch />} />
+                        <Route path="/chat" element={<Chat />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/projects" element={<Projects />} />
+                        <Route path="/projects/new" element={<ProjectForm />} />
+                        <Route path="/projects/:id" element={<ProjectDetails />} />
+                        <Route path="/projects/:id/edit" element={<ProjectForm />} />
+                    </Route>
                 </Route>
 
                 {/* Admin Routes */}

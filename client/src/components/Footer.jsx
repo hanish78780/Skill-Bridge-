@@ -3,7 +3,7 @@ import { Briefcase, Github, Linkedin, Twitter, Facebook } from 'lucide-react';
 
 const Footer = () => {
     return (
-        <footer className="bg-white border-t border-gray-100 mt-auto">
+        <footer className="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 mt-auto transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Brand */}
@@ -14,7 +14,7 @@ const Footer = () => {
                                 SkillBridge
                             </span>
                         </Link>
-                        <p className="mt-4 text-gray-500 text-sm leading-relaxed max-w-xs">
+                        <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-xs">
                             Connect, collaborate, and showcase your skills. The premium platform for developers to manage projects and build their portfolio.
                         </p>
                         <div className="flex space-x-4 mt-6">
@@ -35,26 +35,26 @@ const Footer = () => {
 
                     {/* Quick Links */}
                     <div>
-                        <h3 className="text-sm font-bold text-gray-900 tracking-wider uppercase mb-4">Platform</h3>
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white tracking-wider uppercase mb-4">Platform</h3>
                         <ul className="space-y-3">
-                            <li><Link to="/projects" className="text-gray-500 hover:text-indigo-600 transition-colors">Browse Projects</Link></li>
-                            <li><Link to="/login" className="text-gray-500 hover:text-indigo-600 transition-colors">Login</Link></li>
-                            <li><Link to="/register" className="text-gray-500 hover:text-indigo-600 transition-colors">Sign Up</Link></li>
+                            <li><Link to="/projects" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Browse Projects</Link></li>
+                            <li><Link to="/login" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Login</Link></li>
+                            <li><Link to="/register" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Sign Up</Link></li>
                         </ul>
                     </div>
 
                     {/* Support */}
                     <div>
-                        <h3 className="text-sm font-bold text-gray-900 tracking-wider uppercase mb-4">Support</h3>
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white tracking-wider uppercase mb-4">Support</h3>
                         <ul className="space-y-3">
-                            <li><a href="#" className="text-gray-500 hover:text-indigo-600 transition-colors">Help Center</a></li>
-                            <li><a href="#" className="text-gray-500 hover:text-indigo-600 transition-colors">Privacy Policy</a></li>
-                            <li><a href="#" className="text-gray-500 hover:text-indigo-600 transition-colors">Terms of Service</a></li>
+                            <li><a href="#" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Help Center</a></li>
+                            <li><a href="#" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Privacy Policy</a></li>
+                            <li><a href="#" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Terms of Service</a></li>
                         </ul>
                     </div>
                 </div>
 
-                <div className="border-t border-gray-100 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <div className="border-t border-gray-100 dark:border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
                     <p className="text-gray-400 text-sm">
                         &copy; {new Date().getFullYear()} SkillBridge Inc. All rights reserved.
                     </p>

@@ -24,9 +24,7 @@ function App() {
       <AuthProvider>
         <ThemeProvider>
           <ChatProvider>
-            <Layout>
-              <AnimatedRoutes />
-            </Layout>
+            <AnimatedRoutes />
           </ChatProvider>
         </ThemeProvider>
       </AuthProvider>
