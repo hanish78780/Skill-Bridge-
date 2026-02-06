@@ -67,6 +67,13 @@ const sendResetPasswordEmail = async (user, resetUrl) => {
         </div>
     `;
 
+    // ALWAYS Log to console in development so you can test without email
+    console.log('------------------------------------------');
+    console.log('📧 DEVELOPMENT EMAILS (Reset Password) 📧');
+    console.log(`To: ${user.email}`);
+    console.log(`Reset Link: ${resetUrl}`);
+    console.log('------------------------------------------');
+
     await sendEmail({
         to: user.email,
         subject: 'Password Reset Request',
