@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
-const { register, login, getMe, updateDetails, uploadAvatar } = require('../controllers/authController');
+const { register, login, getMe, updateDetails, uploadAvatar, forgotPassword, resetPassword } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const jwt = require('jsonwebtoken');
 
@@ -31,5 +31,7 @@ router.get('/me', protect, getMe);
 const upload = require('../config/upload'); // Import multer config
 router.post('/upload-avatar', protect, upload.single('avatar'), uploadAvatar);
 router.put('/updatedetails', protect, updateDetails);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password/:token', resetPassword);
 
 module.exports = router;

@@ -54,6 +54,14 @@ const Login = () => {
                         required
                     />
 
+                    <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                            <Link to="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+                                Forgot your password?
+                            </Link>
+                        </div>
+                    </div>
+
                     <Button className="w-full py-3" type="submit">
                         Sign In
                     </Button>

@@ -12,6 +12,8 @@ import ProjectDetails from '../pages/ProjectDetails';
 import ProjectForm from '../pages/ProjectForm';
 import Profile from '../pages/Profile';
 import AuthSuccess from '../pages/AuthSuccess';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
 import TalentSearch from '../pages/TalentSearch';
 import Chat from '../pages/Chat';
 import ProtectedRoute from './ProtectedRoute';
@@ -35,6 +37,8 @@ const AnimatedRoutes = () => {
                     <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
                     <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
                     <Route path="/auth/success" element={<AuthSuccess />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password/:token" element={<ResetPassword />} />
 
                     {/* Protected Routes */}
                     <Route element={<ProtectedRoute />}>
