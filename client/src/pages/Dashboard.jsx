@@ -36,8 +36,8 @@ const Dashboard = () => {
         <div className="space-y-8 animate-fade-in">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                    <p className="text-gray-500 mt-1">Welcome back, {user?.name}!</p>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">Welcome back, {user?.name}!</p>
                 </div>
                 <Link to="/projects/new">
                     <Button>
@@ -49,13 +49,13 @@ const Dashboard = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {stats.map((stat) => (
-                    <div key={stat.label} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center space-x-4">
-                        <div className="p-3 bg-gray-50 rounded-lg">
+                    <div key={stat.label} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center space-x-4">
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                             {stat.icon}
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-gray-500">{stat.label}</p>
-                            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.label}</p>
+                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
                         </div>
                     </div>
                 ))}
@@ -63,9 +63,9 @@ const Dashboard = () => {
 
             {/* Project Status Board */}
             <div className="space-y-4">
-                <h2 className="text-xl font-bold text-gray-900">Recommended For You</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recommended For You</h2>
                 <RecommendedProjects />
-                <h2 className="text-xl font-bold text-gray-900">Project Status Board</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Project Status Board</h2>
                 <KanbanBoard />
             </div>
         </div>

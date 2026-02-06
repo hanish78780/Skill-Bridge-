@@ -11,7 +11,7 @@
 }
 
 .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+    @apply bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-xl;
 }
 
 .card-hover {

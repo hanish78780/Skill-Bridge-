@@ -6,9 +6,9 @@ const Button = ({ children, variant = 'primary', className, ...props }) => {
 
     const variants = {
         primary: 'border-transparent text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 hover:shadow-indigo-500/30 shadow-indigo-500/20',
-        secondary: 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-indigo-500',
+        secondary: 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-indigo-500',
         danger: 'border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-500',
-        ghost: 'border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 shadow-none'
+        ghost: 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white shadow-none'
     };
 
     return (

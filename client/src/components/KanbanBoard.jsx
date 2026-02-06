@@ -53,9 +53,9 @@ const KanbanBoard = () => {
     };
 
     const columns = [
-        { id: 'pending', title: 'Pending', color: 'bg-yellow-50 text-yellow-800' },
-        { id: 'active', title: 'Active', color: 'bg-blue-50 text-blue-800' },
-        { id: 'completed', title: 'Completed', color: 'bg-green-50 text-green-800' }
+        { id: 'pending', title: 'Pending', color: 'bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200' },
+        { id: 'active', title: 'Active', color: 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-200' },
+        { id: 'completed', title: 'Completed', color: 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200' }
     ];
 
     if (loading) return <div>Loading board...</div>;
@@ -65,7 +65,7 @@ const KanbanBoard = () => {
             {columns.map((col) => (
                 <div
                     key={col.id}
-                    className="bg-gray-50/50 rounded-xl p-4 flex flex-col border border-gray-200"
+                    className="bg-gray-50/50 dark:bg-gray-900/50 rounded-xl p-4 flex flex-col border border-gray-200 dark:border-gray-800"
                     onDragOver={onDragOver}
                     onDrop={(e) => onDrop(e, col.id)}
                 >
@@ -84,11 +84,11 @@ const KanbanBoard = () => {
                                     onDragStart={(e) => onDragStart(e, project._id)}
                                     whileHover={{ scale: 1.02 }}
                                     whileDrag={{ scale: 1.05 }}
-                                    className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 cursor-grab active:cursor-grabbing"
+                                    className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 cursor-grab active:cursor-grabbing"
                                 >
                                     <Link to={`/projects/${project._id}`} className="block">
-                                        <h4 className="font-bold text-gray-900 mb-1">{project.title}</h4>
-                                        <p className="text-xs text-gray-500 line-clamp-2 mb-2">{project.description}</p>
+                                        <h4 className="font-bold text-gray-900 dark:text-white mb-1">{project.title}</h4>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">{project.description}</p>
                                         <div className="flex justify-between items-center text-xs text-gray-400">
                                             <span>{project.assignedTo?.length || 0} Members</span>
                                             <span>{new Date(project.createdAt).toLocaleDateString()}</span>
