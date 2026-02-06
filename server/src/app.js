@@ -10,6 +10,9 @@ const app = express();
 // Disable Helmet for now to fix TrustedScriptURL error
 // app.use(helmet(...));
 
+// Trust Proxy for Render/Heroku (Required for accurate protocol detection in OAuth)
+app.set('trust proxy', 1);
+
 // Manually set permissive headers for development
 app.use((req, res, next) => {
     res.removeHeader('Content-Security-Policy');
