@@ -120,6 +120,28 @@ const updateDetails = async (req, res, next) => {
 // @desc    Upload user avatar
 // @route   POST /api/auth/upload-avatar
 // @access  Private
+const uploadAvatar = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'Please upload a file' });
+        }
+
+        // Construct file path relative to server root
+        const avatarPath = `/uploads/${req.file.filename}`;
+
+        const user = await User.findByIdAndUpdate(req.user.id, { avatar: avatarPath }, {
+            new: true
+        });
+
+        res.status(200).json({
+            message: 'Avatar uploaded successfully',
+            avatar: user.avatar
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // @desc    Forgot Password
 // @route   POST /api/auth/forgot-password
 // @access  Public
