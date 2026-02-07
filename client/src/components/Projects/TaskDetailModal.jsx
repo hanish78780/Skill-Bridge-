@@ -13,12 +13,14 @@ const PRIORITIES = {
     high: { label: 'High', color: 'bg-red-100 text-red-700', icon: 'bg-red-500' }
 };
 
-const TaskDetailModal = ({ isOpen, onClose, task, projectId, onUpdate, onDelete }) => {
+const TaskDetailModal = ({ isOpen, onClose, task, projectId, members = [], onUpdate, onDelete }) => {
     const { user } = useAuth();
     const [title, setTitle] = useState(task?.content || '');
     const [description, setDescription] = useState(task?.description || '');
     const [status, setStatus] = useState(task?.status || 'todo');
     const [priority, setPriority] = useState(task?.priority || 'medium');
+    const [assignedTo, setAssignedTo] = useState(task?.assignedTo || '');
+    const [dueDate, setDueDate] = useState(task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
     const [commentText, setCommentText] = useState('');
     const [comments, setComments] = useState(task?.comments || []);
     const [loading, setLoading] = useState(false);
@@ -29,6 +31,8 @@ const TaskDetailModal = ({ isOpen, onClose, task, projectId, onUpdate, onDelete 
             setDescription(task.description || '');
             setStatus(task.status);
             setPriority(task.priority || 'medium');
+            setAssignedTo(task.assignedTo || '');
+            setDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
             setComments(task.comments || []);
         }
     }, [task]);
@@ -42,6 +46,8 @@ const TaskDetailModal = ({ isOpen, onClose, task, projectId, onUpdate, onDelete 
                 description,
                 status,
                 priority,
+                assignedTo,
+                dueDate,
                 comments
             };
 
@@ -243,24 +249,40 @@ const TaskDetailModal = ({ isOpen, onClose, task, projectId, onUpdate, onDelete 
                                         </div>
                                     </div>
 
-                                    {/* Assignee (Mock) */}
+                                    {/* Assignee */}
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Assignee</label>
-                                        <button className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-left transition-colors">
-                                            <div className="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs">
-                                                <User className="h-3 w-3" />
+                                        <div className="relative">
+                                            <select
+                                                value={assignedTo}
+                                                onChange={(e) => setAssignedTo(e.target.value)}
+                                                className="w-full p-2.5 pl-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-500 dark:text-white appearance-none cursor-pointer"
+                                            >
+                                                <option value="">Unassigned</option>
+                                                {members.map(m => (
+                                                    <option key={m._id} value={m._id}>{m.name}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute left-3 top-2.5 pointer-events-none">
+                                                <User className="h-5 w-5 text-gray-400" />
                                             </div>
-                                            <span className="text-sm text-gray-600 dark:text-gray-300">Unassigned</span>
-                                        </button>
+                                        </div>
                                     </div>
 
-                                    {/* Due Date (Mock) */}
+                                    {/* Due Date */}
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Due Date</label>
-                                        <button className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-left transition-colors text-gray-500">
-                                            <Calendar className="h-4 w-4" />
-                                            <span className="text-sm">No due date</span>
-                                        </button>
+                                        <div className="relative">
+                                            <input
+                                                type="date"
+                                                value={dueDate}
+                                                onChange={(e) => setDueDate(e.target.value)}
+                                                className="w-full p-2.5 pl-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-500 dark:text-white dark:[color-scheme:dark]"
+                                            />
+                                            <div className="absolute left-3 top-2.5 pointer-events-none">
+                                                <Calendar className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="h-px bg-gray-200 dark:bg-gray-700 my-4" />

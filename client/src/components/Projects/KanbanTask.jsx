@@ -59,9 +59,19 @@ const KanbanTask = ({ task, index, onClick }) => {
                             {/* Assignee Avatar (Mock) */}
                             <div className="flex -space-x-1.5 overflow-hidden">
                                 {task.assignedTo ? (
-                                    <img src={task.assignedTo.avatar || "https://ui-avatars.com/api/?name=" + task.assignedTo.name} className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800" alt="" />
+                                    task.assignedTo.avatar ? (
+                                        <img
+                                            src={(task.assignedTo.avatar.startsWith('http') ? task.assignedTo.avatar : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${task.assignedTo.avatar}`)}
+                                            className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 object-cover"
+                                            alt={task.assignedTo.name}
+                                        />
+                                    ) : (
+                                        <div className="h-6 w-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-[10px] font-bold text-indigo-700 dark:text-indigo-400 ring-2 ring-white dark:ring-gray-800">
+                                            {task.assignedTo.name?.charAt(0)}
+                                        </div>
+                                    )
                                 ) : (
-                                    <div className="h-6 w-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-[10px] font-medium text-gray-500 border border-white dark:border-gray-800">
+                                    <div className="h-6 w-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-[10px] font-medium text-gray-500 ring-2 ring-white dark:border-gray-800">
                                         ?
                                     </div>
                                 )}

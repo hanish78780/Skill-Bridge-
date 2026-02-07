@@ -75,11 +75,11 @@ const ProjectForm = () => {
 
     return (
         <div className="max-w-2xl mx-auto animate-fade-in">
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                <h1 className="text-2xl font-bold mb-6">{isEditMode ? 'Edit Project' : 'Create New Project'}</h1>
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">{isEditMode ? 'Edit Project' : 'Create New Project'}</h1>
 
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm">
+                    <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg mb-6 text-sm border border-red-100 dark:border-red-900/30">
                         {error}
                     </div>
                 )}
@@ -95,13 +95,13 @@ const ProjectForm = () => {
                     />
 
                     <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Description
                         </label>
                         <textarea
                             id="description"
                             rows="4"
-                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             value={formData.description}
                             onChange={handleChange}
                             required
@@ -119,12 +119,12 @@ const ProjectForm = () => {
                         />
 
                         <div>
-                            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Status
                             </label>
                             <select
                                 id="status"
-                                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 value={formData.status}
                                 onChange={handleChange}
                             >
@@ -135,12 +135,12 @@ const ProjectForm = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Difficulty Level
                             </label>
                             <select
                                 id="difficulty"
-                                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 value={formData.difficulty}
                                 onChange={handleChange}
                             >
@@ -151,12 +151,12 @@ const ProjectForm = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="duration" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Estimated Duration
                             </label>
                             <select
                                 id="duration"
-                                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 value={formData.duration}
                                 onChange={handleChange}
                             >
@@ -168,7 +168,7 @@ const ProjectForm = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Required Skills</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Required Skills</label>
                         <SkillSelector
                             selectedSkills={formData.requiredSkills}
                             onChange={(skills) => setFormData({ ...formData, requiredSkills: skills })}

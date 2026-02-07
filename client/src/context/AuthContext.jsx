@@ -85,10 +85,12 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         error,
+        checkUserLoggedIn,
         login,
         register,
         logout,
-        setUser // Expose setter for updates
+        setUser, // Expose setter for updates
+        refreshUser: checkUserLoggedIn // Alias for re-fetching user data
     };
 
     return (

@@ -24,7 +24,7 @@ const initialColumns = {
     },
 };
 
-const KanbanBoard = ({ projectId, tasks: initialTasks = [], onTaskUpdate }) => {
+const KanbanBoard = ({ projectId, tasks: initialTasks = [], members = [], onTaskUpdate, readOnly = false }) => {
     const { success, error: toastError } = useToast();
     const [tasks, setTasks] = useState({});
     const [columns, setColumns] = useState(initialColumns);
@@ -50,6 +50,7 @@ const KanbanBoard = ({ projectId, tasks: initialTasks = [], onTaskUpdate }) => {
     }, [initialTasks]);
 
     const onDragEnd = async (result) => {
+        if (readOnly) return;
         const { destination, source, draggableId } = result;
 
         if (!destination) return;
@@ -195,8 +196,10 @@ const KanbanBoard = ({ projectId, tasks: initialTasks = [], onTaskUpdate }) => {
                 onClose={() => setSelectedTask(null)}
                 task={selectedTask}
                 projectId={projectId}
+                members={members}
                 onUpdate={handleTaskUpdate}
                 onDelete={handleDeleteTask}
+                readOnly={readOnly}
             />
 
             <DragDropContext onDragEnd={onDragEnd}>
@@ -209,12 +212,13 @@ const KanbanBoard = ({ projectId, tasks: initialTasks = [], onTaskUpdate }) => {
                                 column={columns[colId]}
                                 tasks={tasks}
                                 isAdding={isAdding && colId === 'todo'}
-                                onAddClick={() => setIsAdding(true)}
+                                onAddClick={() => !readOnly && setIsAdding(true)}
                                 onTaskClick={setSelectedTask}
                                 newTaskContent={newTaskContent}
                                 setNewTaskContent={setNewTaskContent}
                                 handleAddTask={handleAddTask}
                                 cancelAdd={() => setIsAdding(false)}
+                                readOnly={readOnly}
                             />
                         ))}
                     </div>

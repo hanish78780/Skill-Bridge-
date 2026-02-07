@@ -30,6 +30,9 @@ const userSchema = new mongoose.Schema({
     avatar: {
         type: String
     },
+    coverImage: {
+        type: String
+    },
     role: {
         type: String,
         enum: ['user', 'admin', 'moderator'],
@@ -105,7 +108,12 @@ const userSchema = new mongoose.Schema({
         default: Date.now
     },
     resetPasswordToken: String,
-    resetPasswordExpire: Date
+    resetPasswordExpire: Date,
+    // Payment / Credits
+    projectCredits: {
+        type: Number,
+        default: 0
+    }
 });
 
 // Add Compound Index for High-Performance Search
@@ -123,6 +131,8 @@ userSchema.pre('save', async function (next) {
 
 // Match user entered password to hashed password in database
 userSchema.methods.matchPassword = async function (enteredPassword) {
+    // If user has no password (e.g. created via Google Auth), they can't login with password
+    if (!this.password) return false;
     return await bcrypt.compare(enteredPassword, this.password);
 };
 

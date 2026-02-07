@@ -2,8 +2,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { useChat } from '../context/ChatContext';
 import { useAuth } from '../context/AuthContext';
-import { Send, User, Paperclip, X, File } from 'lucide-react';
+import { Send, User, Paperclip, X, File, MessageSquare } from 'lucide-react';
 import axios from 'axios';
+import EmptyState from '../components/UI/EmptyState';
 
 const Chat = () => {
     const { user } = useAuth();
@@ -120,8 +121,8 @@ const Chat = () => {
                                     key={chat._id}
                                     onClick={() => setCurrentChat(chat)}
                                     className={`p-4 border-b border-gray-50 dark:border-gray-800 cursor-pointer transition-all duration-200 group ${isActive
-                                            ? 'bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-l-indigo-600 dark:border-l-indigo-400'
-                                            : 'hover:bg-gray-50 dark:hover:bg-gray-700/30 border-l-4 border-l-transparent'
+                                        ? 'bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-l-indigo-600 dark:border-l-indigo-400'
+                                        : 'hover:bg-gray-50 dark:hover:bg-gray-700/30 border-l-4 border-l-transparent'
                                         }`}
                                 >
                                     <div className="flex items-center gap-4">
@@ -362,11 +363,15 @@ const Chat = () => {
                         </form>
                     </>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-8 bg-gray-50 dark:bg-gray-900">
-                        <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
-                            <User className="h-12 w-12 text-gray-300 dark:text-gray-600" />
-                        </div>
-                        <p className="text-lg">Select a conversation to start chatting</p>
+                    <div className="flex-1 flex justify-center items-center bg-gray-50 dark:bg-gray-900/50">
+                        <EmptyState
+                            icon={MessageSquare}
+                            title="Start Chatting"
+                            description="Select a conversation or find talent to message."
+                            actionLabel="Find Talent"
+                            actionLink="/talent"
+                            className="border-0 bg-transparent shadow-none"
+                        />
                     </div>
                 )}
             </div>

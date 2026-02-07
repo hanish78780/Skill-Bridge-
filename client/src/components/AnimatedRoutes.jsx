@@ -12,6 +12,7 @@ import ProjectDetails from '../pages/ProjectDetails';
 import ProjectForm from '../pages/ProjectForm';
 import Profile from '../pages/Profile';
 import AuthSuccess from '../pages/AuthSuccess';
+import PublicProfile from '../pages/PublicProfile';
 import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
 import TalentSearch from '../pages/TalentSearch';
@@ -34,6 +35,7 @@ const AnimatedRoutes = () => {
                 {/* Public & Protected Routes Wrapped in Main Layout */}
                 <Route element={<Layout><Outlet /></Layout>}>
                     <Route path="/" element={<Home />} />
+                    <Route path="/profile/:id" element={<PublicProfile />} />
                     <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
                     <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
                     <Route path="/auth/success" element={<AuthSuccess />} />

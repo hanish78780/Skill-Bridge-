@@ -94,11 +94,15 @@ const TalentSearch = () => {
                         <div key={user._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg">
-                                        {user.avatar ? <img src={user.avatar} alt={user.name} className="h-full w-full rounded-full object-cover" /> : user.name.charAt(0)}
-                                    </div>
+                                    <Link to={`/profile/${user._id}`} className="hover:opacity-80 transition-opacity">
+                                        <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg overflow-hidden">
+                                            {user.avatar ? <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" /> : user.name.charAt(0)}
+                                        </div>
+                                    </Link>
                                     <div>
-                                        <h3 className="font-semibold text-gray-900 dark:text-white">{user.name}</h3>
+                                        <Link to={`/profile/${user._id}`} className="hover:underline">
+                                            <h3 className="font-semibold text-gray-900 dark:text-white">{user.name}</h3>
+                                        </Link>
                                         <p className="text-sm text-gray-500 dark:text-gray-400">{user.title || 'Developer'}</p>
                                     </div>
                                 </div>

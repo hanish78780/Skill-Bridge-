@@ -1,15 +1,33 @@
 const Project = require('../models/Project');
 const User = require('../models/User');
+const Activity = require('../models/Activity');
+const Notification = require('../models/Notification');
+const { getIo } = require('../socket/socket');
 
 // @desc    Create a new project
 // @route   POST /api/projects
 // @access  Private
 const createProject = async (req, res, next) => {
     try {
+        const user = await User.findById(req.user.id);
+
+        // Check if user has sufficient credits
+        if (!user.projectCredits || user.projectCredits < 1) {
+            return res.status(403).json({
+                message: 'Insufficient credits to create a project. Please purchase credits.',
+                code: 'PAYMENT_REQUIRED'
+            });
+        }
+
         const project = await Project.create({
             ...req.body,
             createdBy: req.user.id
         });
+
+        // Deduct credit
+        user.projectCredits -= 1;
+        await user.save();
+
         res.status(201).json(project);
     } catch (error) {
         next(error);
@@ -133,6 +151,19 @@ const updateProject = async (req, res, next) => {
             runValidators: true
         });
 
+        // Log Activity if members changed
+        // This is a simplified check; deeper diffing might be needed for perfect accuracy
+        if (req.body.assignedTo) {
+            await Activity.create({
+                project: project._id,
+                user: req.user.id,
+                action: 'project_updated',
+                details: {
+                    changes: 'Members updated'
+                }
+            });
+        }
+
         res.status(200).json(project);
     } catch (error) {
         next(error);
@@ -189,16 +220,50 @@ const addTask = async (req, res, next) => {
         project.tasks.push(newTask);
         await project.save();
 
+        // Log Activity
+        await Activity.create({
+            project: project._id,
+            user: req.user.id,
+            action: 'task_created',
+            details: {
+                taskId: newTask.id,
+                taskContent: newTask.content
+            }
+        });
+
+        // Notify Assignee (if not self)
+        if (newTask.assignedTo && newTask.assignedTo.toString() !== req.user.id) {
+            const notification = await Notification.create({
+                recipient: newTask.assignedTo,
+                sender: req.user.id,
+                type: 'task_assigned',
+                message: `${req.user.name} assigned you a task: "${newTask.content.substring(0, 30)}${newTask.content.length > 30 ? '...' : ''}"`,
+                relatedLink: `/projects/${project._id}`
+            });
+
+            // Emit Socket Event
+            try {
+                const io = getIo();
+                const recipientSocketId = io.getSocketId(newTask.assignedTo.toString());
+                if (recipientSocketId) {
+                    await notification.populate('sender', 'name avatar');
+                    io.to(recipientSocketId).emit('notification', notification);
+                }
+            } catch (socketError) {
+                console.error('Socket emit error:', socketError);
+            }
+        }
+
         res.status(200).json(project);
     } catch (error) {
         next(error);
     }
 };
 
-// @desc    Update task status
+// @desc    Update task details (status, content, priority, etc.)
 // @route   PUT /api/projects/:id/tasks/:taskId
 // @access  Private
-const updateTaskStatus = async (req, res, next) => {
+const updateTask = async (req, res, next) => {
     try {
         const project = await Project.findById(req.params.id);
 
@@ -206,14 +271,84 @@ const updateTaskStatus = async (req, res, next) => {
             return res.status(404).json({ message: 'Project not found' });
         }
 
-        const task = project.tasks.find(t => t.id === req.params.taskId);
+        const taskIndex = project.tasks.findIndex(t => t.id === req.params.taskId);
 
-        if (!task) {
+        if (taskIndex === -1) {
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        task.status = req.body.status;
+        // Update task fields if provided
+        const task = project.tasks[taskIndex];
+        if (req.body.content) task.content = req.body.content;
+        if (req.body.description !== undefined) task.description = req.body.description;
+        if (req.body.status) task.status = req.body.status;
+        if (req.body.priority) task.priority = req.body.priority;
+        if (req.body.dueDate) task.dueDate = req.body.dueDate;
+        if (req.body.assignedTo) task.assignedTo = req.body.assignedTo;
+        if (req.body.comments) task.comments = req.body.comments;
+        if (req.body.attachments) task.attachments = req.body.attachments;
+
+        // Ensure changes are marked for Mongoose
+        project.markModified('tasks');
+
         await project.save();
+
+        // Log Activity
+        let action = 'task_updated';
+        if (req.body.status && req.body.status !== task.status) action = 'task_moved';
+        if (req.body.status === 'done') action = 'task_completed';
+
+        await Activity.create({
+            project: project._id,
+            user: req.user.id,
+            action: action,
+            details: {
+                taskId: task.id,
+                taskContent: task.content,
+                changes: req.body
+            }
+        });
+
+        // NOTIFICATIONS
+        const io = getIo();
+
+        // 1. Task Re-assigned
+        if (req.body.assignedTo && req.body.assignedTo !== task.assignedTo?.toString() && req.body.assignedTo !== req.user.id) {
+            const notification = await Notification.create({
+                recipient: req.body.assignedTo,
+                sender: req.user.id,
+                type: 'task_assigned',
+                message: `${req.user.name} assigned you a task: "${task.content.substring(0, 30)}..."`,
+                relatedLink: `/projects/${project._id}`
+            });
+
+            try {
+                const recipientSocketId = io.getSocketId(req.body.assignedTo.toString());
+                if (recipientSocketId) {
+                    await notification.populate('sender', 'name avatar');
+                    io.to(recipientSocketId).emit('notification', notification);
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        // 2. Task Completed (Notify Owner if not self)
+        if (req.body.status === 'done' && project.createdBy.toString() !== req.user.id) {
+            const notification = await Notification.create({
+                recipient: project.createdBy,
+                sender: req.user.id,
+                type: 'system', // or create new 'task_completed' type
+                message: `${req.user.name} completed a task in "${project.title}"`,
+                relatedLink: `/projects/${project._id}`
+            });
+
+            try {
+                const ownerSocketId = io.getSocketId(project.createdBy.toString());
+                if (ownerSocketId) {
+                    await notification.populate('sender', 'name avatar');
+                    io.to(ownerSocketId).emit('notification', notification);
+                }
+            } catch (err) { console.error(err); }
+        }
 
         res.status(200).json(project);
     } catch (error) {
@@ -228,7 +363,7 @@ module.exports = {
     updateProject,
     deleteProject,
     addTask,
-    updateTaskStatus,
+    updateTask,
     getRecommendedProjects,
     getDashboardStats
 };

@@ -111,7 +111,7 @@ const SkillSelector = ({ selectedSkills, onChange, maxSkills = 10 }) => {
                     </ul>
                 )}
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
                 {maxSkills - selectedSkills.length} slots remaining. Press Enter to add custom skills.
             </p>
         </div>

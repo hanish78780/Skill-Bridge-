@@ -10,7 +10,7 @@ const COLUMN_CONFIG = {
     'done': { label: 'Done', color: 'green', icon: CheckCircle2, badge: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-300' }
 };
 
-const KanbanColumn = ({ colId, column, tasks, isAdding, onAddClick, onTaskClick, newTaskContent, setNewTaskContent, handleAddTask, cancelAdd, provided }) => {
+const KanbanColumn = ({ colId, column, tasks, isAdding, onAddClick, onTaskClick, newTaskContent, setNewTaskContent, handleAddTask, cancelAdd, provided, readOnly = false }) => {
     const config = COLUMN_CONFIG[colId] || COLUMN_CONFIG['todo'];
     const Icon = config.icon;
 
@@ -27,18 +27,20 @@ const KanbanColumn = ({ colId, column, tasks, isAdding, onAddClick, onTaskClick,
                         {column.taskIds.length}
                     </span>
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={onAddClick} className="p-1 hover:bg-white dark:hover:bg-gray-700 rounded text-gray-400 hover:text-gray-600">
-                        <Plus className="h-4 w-4" />
-                    </button>
-                    <button className="p-1 hover:bg-white dark:hover:bg-gray-700 rounded text-gray-400 hover:text-gray-600">
-                        <MoreHorizontal className="h-4 w-4" />
-                    </button>
-                </div>
+                {!readOnly && (
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={onAddClick} className="p-1 hover:bg-white dark:hover:bg-gray-700 rounded text-gray-400 hover:text-gray-600">
+                            <Plus className="h-4 w-4" />
+                        </button>
+                        <button className="p-1 hover:bg-white dark:hover:bg-gray-700 rounded text-gray-400 hover:text-gray-600">
+                            <MoreHorizontal className="h-4 w-4" />
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Tasks Area */}
-            <Droppable droppableId={column.id}>
+            <Droppable droppableId={column.id} isDropDisabled={readOnly}>
                 {(provided, snapshot) => (
                     <div
                         {...provided.droppableProps}
@@ -71,12 +73,14 @@ const KanbanColumn = ({ colId, column, tasks, isAdding, onAddClick, onTaskClick,
                                         <Plus className="h-5 w-5 opacity-50" />
                                     </div>
                                     <span className="text-xs font-medium">No tasks yet</span>
-                                    <button onClick={onAddClick} className="text-xs text-indigo-600 hover:underline">Add one</button>
+                                    {!readOnly && (
+                                        <button onClick={onAddClick} className="text-xs text-indigo-600 hover:underline">Add one</button>
+                                    )}
                                 </div>
                             )}
 
                             {/* Add Task Form (Inline) */}
-                            {isAdding && colId === 'todo' && (
+                            {isAdding && colId === 'todo' && !readOnly && (
                                 <div className="mt-2">
                                     <form onSubmit={handleAddTask} className="bg-white dark:bg-gray-800 p-4 rounded-xl border-2 border-indigo-500 shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200">
                                         <textarea

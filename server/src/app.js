@@ -43,6 +43,8 @@ app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/skills', require('./routes/skillRoutes'));
+app.use('/api/activities', require('./routes/activityRoutes'));
+app.use('/api/payment', require('./routes/paymentRoutes'));
 
 app.get('/', (req, res) => {
     res.json({ message: 'SkillBridge API is running' });

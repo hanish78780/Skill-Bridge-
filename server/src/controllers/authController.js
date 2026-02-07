@@ -216,12 +216,38 @@ const resetPassword = async (req, res, next) => {
     }
 };
 
+// @desc    Upload user cover image
+// @route   POST /api/auth/upload-cover
+// @access  Private
+const uploadCover = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'Please upload a file' });
+        }
+
+        // Construct file path relative to server root
+        const coverPath = `/uploads/${req.file.filename}`;
+
+        const user = await User.findByIdAndUpdate(req.user.id, { coverImage: coverPath }, {
+            new: true
+        });
+
+        res.status(200).json({
+            message: 'Cover image uploaded successfully',
+            coverImage: user.coverImage
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     register,
     login,
     getMe,
     updateDetails,
     uploadAvatar,
+    uploadCover,
     forgotPassword,
     resetPassword
 };

@@ -7,11 +7,12 @@ const {
     updateProject,
     deleteProject,
     addTask,
-    updateTaskStatus,
+    updateTask,
     getRecommendedProjects,
     getDashboardStats
 } = require('../controllers/projectController');
 const { protect } = require('../middleware/authMiddleware');
+const { checkProjectRole } = require('../middleware/roleMiddleware');
 
 router.route('/')
     .get(getProjects)
@@ -22,13 +23,13 @@ router.get('/stats', protect, getDashboardStats);
 
 router.route('/:id')
     .get(getProject)
-    .put(protect, updateProject)
-    .delete(protect, deleteProject);
+    .put(protect, checkProjectRole('owner'), updateProject)
+    .delete(protect, checkProjectRole('owner'), deleteProject);
 
 router.route('/:id/tasks')
-    .post(protect, addTask);
+    .post(protect, checkProjectRole('member'), addTask);
 
 router.route('/:id/tasks/:taskId')
-    .put(protect, updateTaskStatus);
+    .put(protect, checkProjectRole('member'), updateTask);
 
 module.exports = router;

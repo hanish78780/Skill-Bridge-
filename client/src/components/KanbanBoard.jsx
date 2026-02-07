@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import EmptyState from './UI/EmptyState';
+import { Clock, Folder, CheckCircle } from 'lucide-react';
 
 const KanbanBoard = () => {
     const [projects, setProjects] = useState([]);
@@ -80,9 +82,14 @@ const KanbanBoard = () => {
 
                         <div className="space-y-3 flex-1">
                             {columnProjects.length === 0 ? (
-                                <div className="h-32 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center text-gray-400">
-                                    <span className="text-sm">No tasks</span>
-                                </div>
+                                <EmptyState
+                                    icon={col.id === 'pending' ? Clock : col.id === 'active' ? Folder : CheckCircle}
+                                    title={col.id === 'pending' ? 'No pending tasks' : col.id === 'active' ? 'No active projects' : 'No completed projects'}
+                                    description={col.id === 'pending' ? 'You are all caught up!' : col.id === 'active' ? 'Ready to take on something new?' : 'Finish tasks to see them here.'}
+                                    actionLabel={col.id === 'active' ? 'New Project' : ''}
+                                    actionLink={col.id === 'active' ? '/projects/new' : ''}
+                                    className="py-12"
+                                />
                             ) : (
                                 columnProjects.map((project) => (
                                     <motion.div

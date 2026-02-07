@@ -7,7 +7,10 @@ import ProjectCard from '../components/Projects/ProjectCard';
 import ProjectFilter from '../components/Projects/ProjectFilter';
 import PageTransition from '../components/PageTransition';
 
+import { usePayment } from '../context/PaymentContext';
+
 const Projects = () => {
+    const { handleCreateProjectClick } = usePayment();
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -62,11 +65,12 @@ const Projects = () => {
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Discover Projects</h1>
                         <p className="text-gray-500 dark:text-gray-400 mt-1">Find the perfect project to build your skills.</p>
                     </div>
-                    <Link to="/projects/new">
-                        <Button className="shadow-lg shadow-indigo-500/20">
-                            <Plus className="h-5 w-5 mr-1" /> Create Project
-                        </Button>
-                    </Link>
+                    <Button
+                        onClick={handleCreateProjectClick}
+                        className="shadow-lg shadow-indigo-500/20"
+                    >
+                        <Plus className="h-5 w-5 mr-1" /> Create Project
+                    </Button>
                 </div>
 
                 {/* Mobile Filter Toggle */}

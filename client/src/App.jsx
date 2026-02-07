@@ -12,6 +12,7 @@ import Projects from './pages/Projects';
 import ProjectDetails from './pages/ProjectDetails';
 import ProjectForm from './pages/ProjectForm';
 import Profile from './pages/Profile';
+import PublicProfile from './pages/PublicProfile';
 import AuthSuccess from './pages/AuthSuccess';
 import TalentSearch from './pages/TalentSearch';
 import Chat from './pages/Chat';
@@ -19,15 +20,19 @@ import Chat from './pages/Chat';
 import { ThemeProvider } from './context/ThemeContext';
 import AnimatedRoutes from './components/AnimatedRoutes';
 
+import { PaymentProvider } from './context/PaymentContext';
+
 function App() {
   return (
     <Router>
       <ToastProvider>
         <AuthProvider>
           <ThemeProvider>
-            <ChatProvider>
-              <AnimatedRoutes />
-            </ChatProvider>
+            <PaymentProvider>
+              <ChatProvider>
+                <AnimatedRoutes />
+              </ChatProvider>
+            </PaymentProvider>
           </ThemeProvider>
         </AuthProvider>
       </ToastProvider>

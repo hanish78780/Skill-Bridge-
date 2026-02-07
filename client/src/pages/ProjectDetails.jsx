@@ -7,6 +7,7 @@ import { useToast } from '../context/ToastContext';
 import Button from '../components/UI/Button';
 import { Calendar, Clock, Users, CheckCircle, AlertCircle, Edit, Trash2, Layout, Kanban, FileText } from 'lucide-react';
 import KanbanBoard from '../components/Projects/KanbanBoard';
+import ActivityFeed from '../components/Projects/ActivityFeed';
 import ReportModal from '../components/UI/ReportModal';
 import clsx from 'clsx';
 
@@ -168,38 +169,37 @@ const ProjectDetails = () => {
             </div>
 
             {/* Tabs */}
-            {canViewBoard && (
-                <div className="flex border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
-                    <button
-                        onClick={() => setActiveTab('overview')}
-                        className={clsx(
-                            "px-6 py-3 font-medium text-sm flex items-center transition-all relative",
-                            activeTab === 'overview'
-                                ? "text-indigo-600 dark:text-indigo-400"
-                                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                        )}
-                    >
-                        <FileText className="h-4 w-4 mr-2" /> Overview
-                        {activeTab === 'overview' && (
-                            <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400" />
-                        )}
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('board')}
-                        className={clsx(
-                            "px-6 py-3 font-medium text-sm flex items-center transition-all relative",
-                            activeTab === 'board'
-                                ? "text-indigo-600 dark:text-indigo-400"
-                                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                        )}
-                    >
-                        <Kanban className="h-4 w-4 mr-2" /> Project Board
-                        {activeTab === 'board' && (
-                            <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400" />
-                        )}
-                    </button>
-                </div>
-            )}
+            <div className="flex border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
+                <button
+                    onClick={() => setActiveTab('overview')}
+                    className={clsx(
+                        "px-6 py-3 font-medium text-sm flex items-center transition-all relative",
+                        activeTab === 'overview'
+                            ? "text-indigo-600 dark:text-indigo-400"
+                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    )}
+                >
+                    <FileText className="h-4 w-4 mr-2" /> Overview
+                    {activeTab === 'overview' && (
+                        <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400" />
+                    )}
+                </button>
+                <button
+                    onClick={() => setActiveTab('board')}
+                    className={clsx(
+                        "px-6 py-3 font-medium text-sm flex items-center transition-all relative",
+                        activeTab === 'board'
+                            ? "text-indigo-600 dark:text-indigo-400"
+                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    )}
+                >
+                    <Kanban className="h-4 w-4 mr-2" /> Project Board
+                    {activeTab === 'board' && (
+                        <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400" />
+                    )}
+                </button>
+            </div>
+
 
             {/* Tab Content */}
             <div className="flex-1 min-h-0">
@@ -399,6 +399,11 @@ const ProjectDetails = () => {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Activity Feed */}
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                                <ActivityFeed projectId={id} />
+                            </div>
                         </div>
                     </div>
                 ) : (
@@ -406,7 +411,10 @@ const ProjectDetails = () => {
                     <KanbanBoard
                         projectId={id}
                         tasks={project.tasks || []}
+                        members={[project.createdBy, ...(project.assignedTo || [])].filter(Boolean)}
+
                         onTaskUpdate={fetchProjectData}
+                        readOnly={!isOwner && !isMember}
                     />
                 )}
             </div>

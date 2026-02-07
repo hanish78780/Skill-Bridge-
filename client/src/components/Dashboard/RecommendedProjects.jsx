@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Target, ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../UI/Button';
+import EmptyState from '../UI/EmptyState';
 
 const RecommendedProjects = () => {
     const [projects, setProjects] = useState([]);
@@ -25,18 +26,13 @@ const RecommendedProjects = () => {
     if (loading) return <div className="animate-pulse h-48 bg-gray-100 dark:bg-gray-800 rounded-xl"></div>;
 
     if (projects.length === 0) return (
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 text-center border-2 border-dashed border-gray-200 dark:border-gray-700">
-            <div className="bg-white dark:bg-gray-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <Target className="h-8 w-8 text-indigo-500" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">No Matches Yet</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 max-w-xs mx-auto">Add more skills to your profile to get personalized project recommendations.</p>
-            <Link to="/profile">
-                <Button size="sm" className="shadow-lg shadow-indigo-500/20">
-                    Update Profile
-                </Button>
-            </Link>
-        </div>
+        <EmptyState
+            icon={Target}
+            title="No Matches Yet"
+            description="Add more skills to your profile to get personalized project recommendations."
+            actionLabel="Update Profile"
+            actionLink="/profile"
+        />
     );
 
     return (
