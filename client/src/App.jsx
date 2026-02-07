@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ChatProvider } from './context/ChatContext';
+import { ToastProvider } from './context/ToastContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -21,13 +22,15 @@ import AnimatedRoutes from './components/AnimatedRoutes';
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <ThemeProvider>
-          <ChatProvider>
-            <AnimatedRoutes />
-          </ChatProvider>
-        </ThemeProvider>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <ChatProvider>
+              <AnimatedRoutes />
+            </ChatProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </ToastProvider>
     </Router>
   );
 }

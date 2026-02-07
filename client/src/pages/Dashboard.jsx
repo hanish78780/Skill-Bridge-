@@ -33,40 +33,69 @@ const Dashboard = () => {
     }, []);
 
     return (
-        <div className="space-y-8 animate-fade-in">
-            <div className="flex justify-between items-center">
+        <div className="space-y-12 animate-fade-in pb-12">
+            <div className="flex justify-between items-end border-b border-gray-100 dark:border-gray-800 pb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">Welcome back, {user?.name}!</p>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2 text-lg">Welcome back, {user?.name}</p>
                 </div>
                 <Link to="/projects/new">
-                    <Button>
-                        <Plus className="h-5 w-5 mr-1" /> New Project
+                    <Button className="shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5">
+                        <Plus className="h-5 w-5 mr-2" /> New Project
                     </Button>
                 </Link>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {stats.map((stat) => (
-                    <div key={stat.label} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center space-x-4">
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                            {stat.icon}
+            <section>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {stats.map((stat, idx) => (
+                        <div
+                            key={stat.label}
+                            className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-[0_2px_10px_-4px_rgba(6,81,237,0.1)] border border-gray-100 dark:border-gray-700/50 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <div className={`p-3 rounded-xl ${idx === 0 ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' :
+                                    idx === 1 ? 'bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400' :
+                                        'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400'
+                                    } group-hover:scale-110 transition-transform duration-300`}>
+                                    {stat.icon}
+                                </div>
+                                <span className={`text-sm font-bold px-2 py-1 rounded-full ${idx === 0 ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' :
+                                    idx === 1 ? 'bg-orange-50 text-orange-600 dark:bg-orange-900/20' :
+                                        'bg-green-50 text-green-600 dark:bg-green-900/20'
+                                    }`}>
+                                    {idx === 0 ? 'Active' : idx === 1 ? 'Pending' : 'Done'}
+                                </span>
+                            </div>
+                            <div>
+                                <h3 className="text-4xl font-bold text-gray-900 dark:text-white mb-1">{stat.value}</h3>
+                                <p className="text-gray-500 dark:text-gray-400 font-medium">{stat.label}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.label}</p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            </section>
 
             {/* Project Status Board */}
-            <div className="space-y-4">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recommended For You</h2>
-                <RecommendedProjects />
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Project Status Board</h2>
-                <KanbanBoard />
+            {/* Project Status Board */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                            <Folder className="h-6 w-6 text-indigo-600" />
+                            Project Board
+                        </h2>
+                    </div>
+                    <KanbanBoard />
+                </div>
+
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                        Suggested for you
+                    </h2>
+                    <RecommendedProjects />
+                </div>
             </div>
         </div>
     );

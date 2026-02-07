@@ -51,15 +51,39 @@ const projectSchema = new mongoose.Schema({
     tasks: [{
         id: String,
         content: String,
+        description: String,
         status: {
             type: String,
             enum: ['todo', 'in-progress', 'done'],
             default: 'todo'
         },
+        priority: {
+            type: String,
+            enum: ['low', 'medium', 'high'],
+            default: 'medium'
+        },
+        dueDate: Date,
+        tags: [String],
         assignedTo: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User'
-        }
+        },
+        comments: [{
+            text: String,
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
+        }],
+        attachments: [{
+            name: String,
+            url: String,
+            type: String
+        }]
     }],
     createdAt: {
         type: Date,

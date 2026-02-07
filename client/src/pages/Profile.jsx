@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import axios from 'axios';
 import Button from '../components/UI/Button';
 import Input from '../components/UI/Input';
 import AvatarUpload from '../components/AvatarUpload';
 import Skeleton from '../components/UI/Skeleton';
-import { Github, Linkedin, Globe, MapPin, Edit2, Save, Star, Award, CheckCircle, Plus, X as XIcon, Camera } from 'lucide-react';
+import { Github, Linkedin, Globe, MapPin, Edit2, Save, Star, Award, CheckCircle, Plus, X as XIcon, Camera, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TrustBadge from '../components/UI/TrustBadge';
 import SkillAutocompleteInput from '../components/UI/SkillAutocompleteInput';
 
 const Profile = () => {
-    const { user, setUser } = useAuth(); // Access setUser to update context if needed
+    const { user, setUser } = useAuth();
+    const { success, error: toastError } = useToast();
 
     // State
     const [profile, setProfile] = useState(null);
@@ -24,7 +26,7 @@ const Profile = () => {
     const [formData, setFormData] = useState({
         title: '',
         bio: '',
-        location: '', // New field
+        location: '',
         availabilityStatus: 'Available',
         githubUrl: '',
         linkedinUrl: '',
@@ -58,6 +60,7 @@ const Profile = () => {
             });
         } catch (err) {
             console.error(err);
+            toastError("Failed to load profile");
         } finally {
             setLoading(false);
         }
@@ -104,10 +107,10 @@ const Profile = () => {
             const { data } = await axios.put('/auth/updatedetails', payload);
             setProfile(data);
             setIsEditing(false);
-            // Optional: Show toast success
+            success('Profile updated successfully');
         } catch (err) {
             console.error(err);
-            alert('Failed to update profile');
+            toastError('Failed to update profile');
         } finally {
             setSaving(false);
         }
@@ -119,6 +122,7 @@ const Profile = () => {
         if (user && setUser) {
             setUser({ ...user, avatar: newAvatarPath });
         }
+        success('Avatar updated!');
     };
 
     if (loading) {
@@ -392,6 +396,7 @@ const Profile = () => {
                                                     skill.proficiency === 'Intermediate' ? 'bg-blue-500' :
                                                         'bg-gray-400'
                                                     }`}></div>
+                                                <span className="text-[10px] uppercase opacity-60 ml-1 font-bold">{skill.proficiency}</span>
                                             </motion.div>
                                         ))}
                                         {(!profile?.skills || profile.skills.length === 0) && (

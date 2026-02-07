@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import Button from '../components/UI/Button';
 import { Calendar, Clock, Users, CheckCircle, AlertCircle, Edit, Trash2, Layout, Kanban, FileText } from 'lucide-react';
 import KanbanBoard from '../components/Projects/KanbanBoard';
@@ -12,6 +14,7 @@ const ProjectDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { success, error: toastError } = useToast();
 
     const [project, setProject] = useState(null);
     const [requests, setRequests] = useState([]);
@@ -67,18 +70,20 @@ const ProjectDetails = () => {
             setMyRequest(data);
             setShowRequestForm(false);
             setRequestMessage('');
+            success('Request sent successfully!');
             fetchProjectData();
         } catch (err) {
-            alert('Failed to send request');
+            toastError(err.response?.data?.message || 'Failed to send request');
         }
     };
 
     const handleRequestAction = async (requestId, status) => {
         try {
             await axios.put(`/requests/${requestId}`, { status });
+            success(`Request ${status} successfully`);
             fetchProjectData();
         } catch (err) {
-            alert('Failed to update request');
+            toastError('Failed to update request');
         }
     };
 
@@ -86,9 +91,10 @@ const ProjectDetails = () => {
         if (!window.confirm('Are you sure you want to delete this project?')) return;
         try {
             await axios.delete(`/projects/${id}`);
+            success('Project deleted successfully');
             navigate('/dashboard');
         } catch (err) {
-            alert('Failed to delete project');
+            toastError('Failed to delete project');
         }
     };
 
@@ -99,10 +105,10 @@ const ProjectDetails = () => {
     if (loading) {
         return (
             <div className="max-w-7xl mx-auto p-8 animate-pulse space-y-8">
-                <div className="h-10 w-1/3 bg-gray-200 rounded"></div>
+                <div className="h-10 w-1/3 bg-gray-200 dark:bg-gray-700 rounded"></div>
                 <div className="grid md:grid-cols-3 gap-8">
-                    <div className="md:col-span-2 h-64 bg-gray-100 rounded-xl"></div>
-                    <div className="h-64 bg-gray-100 rounded-xl"></div>
+                    <div className="md:col-span-2 h-64 bg-gray-100 dark:bg-gray-800 rounded-xl"></div>
+                    <div className="h-64 bg-gray-100 dark:bg-gray-800 rounded-xl"></div>
                 </div>
             </div>
         );
@@ -130,10 +136,10 @@ const ProjectDetails = () => {
             <div className="flex flex-col md:flex-row justify-between items-start gap-4 flex-shrink-0">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{project.title}</h1>
-                        <span className={`px-2 py-1 text-xs rounded-full uppercase font-bold tracking-wide ${project.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            project.status === 'active' ? 'bg-blue-100 text-blue-700' :
-                                'bg-gray-100 text-gray-700'
+                        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{project.title}</h1>
+                        <span className={`px-2.5 py-0.5 text-xs rounded-full uppercase font-bold tracking-wide shadow-sm ${project.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                            project.status === 'active' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                             }`}>
                             {project.status}
                         </span>
@@ -142,7 +148,7 @@ const ProjectDetails = () => {
 
                 <div className="flex gap-2">
                     {user && !isOwner && (
-                        <Button variant="secondary" onClick={() => setShowReportModal(true)} className="text-gray-500 hover:text-red-500 border-gray-200 dark:border-gray-700">
+                        <Button variant="secondary" onClick={() => setShowReportModal(true)} className="text-gray-500 hover:text-red-500 border-gray-200 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-900/50">
                             <AlertCircle className="h-4 w-4 mr-2" /> Report
                         </Button>
                     )}
@@ -167,24 +173,30 @@ const ProjectDetails = () => {
                     <button
                         onClick={() => setActiveTab('overview')}
                         className={clsx(
-                            "px-6 py-3 font-medium text-sm flex items-center transition-colors border-b-2",
+                            "px-6 py-3 font-medium text-sm flex items-center transition-all relative",
                             activeTab === 'overview'
-                                ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
-                                : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                ? "text-indigo-600 dark:text-indigo-400"
+                                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                         )}
                     >
                         <FileText className="h-4 w-4 mr-2" /> Overview
+                        {activeTab === 'overview' && (
+                            <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400" />
+                        )}
                     </button>
                     <button
                         onClick={() => setActiveTab('board')}
                         className={clsx(
-                            "px-6 py-3 font-medium text-sm flex items-center transition-colors border-b-2",
+                            "px-6 py-3 font-medium text-sm flex items-center transition-all relative",
                             activeTab === 'board'
-                                ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
-                                : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                ? "text-indigo-600 dark:text-indigo-400"
+                                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                         )}
                     >
                         <Kanban className="h-4 w-4 mr-2" /> Project Board
+                        {activeTab === 'board' && (
+                            <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400" />
+                        )}
                     </button>
                 </div>
             )}
@@ -195,19 +207,19 @@ const ProjectDetails = () => {
                     <div className="grid md:grid-cols-3 gap-8 pb-10">
                         <div className="md:col-span-2 space-y-8">
                             {/* Description */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                                 <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Description</h2>
-                                <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                                <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed text-lg">
                                     {project.description}
                                 </p>
                             </div>
 
                             {/* Required Skills */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                                 <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Required Skills</h2>
                                 <div className="flex flex-wrap gap-2">
                                     {project.requiredSkills?.map((skill, idx) => (
-                                        <span key={idx} className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-medium">
+                                        <span key={idx} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium border border-indigo-100 dark:border-indigo-800/50">
                                             {skill}
                                         </span>
                                     ))}
@@ -216,22 +228,26 @@ const ProjectDetails = () => {
 
                             {/* Incoming Requests (Owner Only) */}
                             {isOwner && requests.length > 0 && (
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                                     <h2 className="text-xl font-bold mb-4 flex items-center text-gray-900 dark:text-white">
-                                        <AlertCircle className="h-5 w-5 mr-2 text-orange-500" />
+                                        <div className="bg-orange-100 dark:bg-orange-900/30 p-1.5 rounded-lg mr-2">
+                                            <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                                        </div>
                                         Join Requests ({requests.length})
                                     </h2>
                                     <div className="space-y-4">
                                         {requests.map((req) => (
-                                            <div key={req._id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex justify-between items-center">
+                                            <div key={req._id} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
                                                 <div>
-                                                    <p className="font-bold text-gray-900 dark:text-white">{req.user?.name}</p>
-                                                    <p className="text-sm text-gray-500">{req.user?.title}</p>
-                                                    {req.message && <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded">"{req.message}"</p>}
+                                                    <p className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                                        {req.user?.name}
+                                                        <span className="text-xs font-normal text-gray-500 bg-white dark:bg-gray-700 px-2 py-0.5 rounded border border-gray-200 dark:border-gray-600">{req.user?.title}</span>
+                                                    </p>
+                                                    {req.message && <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 italic">"{req.message}"</p>}
                                                 </div>
                                                 {req.status === 'pending' ? (
                                                     <div className="flex gap-2">
-                                                        <Button size="sm" onClick={() => handleRequestAction(req._id, 'accepted')} className="bg-green-600 hover:bg-green-700">
+                                                        <Button size="sm" onClick={() => handleRequestAction(req._id, 'accepted')} className="bg-green-600 hover:bg-green-700 shadow-sm border-transparent text-white">
                                                             Accept
                                                         </Button>
                                                         <Button size="sm" variant="danger" onClick={() => handleRequestAction(req._id, 'rejected')}>
@@ -254,90 +270,132 @@ const ProjectDetails = () => {
                         {/* Sidebar */}
                         <div className="space-y-6">
                             {/* Metadata */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-4">
-                                <div className="flex items-center text-gray-600 dark:text-gray-300">
-                                    <Calendar className="h-5 w-5 mr-3 text-gray-400" />
-                                    <span>Due: {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}</span>
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-5">
+                                <div className="flex items-center text-gray-700 dark:text-gray-200">
+                                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-3">
+                                        <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500">Deadline</p>
+                                        <span className="font-medium">{project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}</span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center text-gray-600 dark:text-gray-300">
-                                    <Clock className="h-5 w-5 mr-3 text-gray-400" />
-                                    <span>Posted: {new Date(project.createdAt).toLocaleDateString()}</span>
+                                <div className="flex items-center text-gray-700 dark:text-gray-200">
+                                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-3">
+                                        <Clock className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500">Posted On</p>
+                                        <span className="font-medium">{new Date(project.createdAt).toLocaleDateString()}</span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center text-gray-600 dark:text-gray-300">
-                                    <Users className="h-5 w-5 mr-3 text-gray-400" />
-                                    <span>{project.assignedTo?.length || 0} Members</span>
+                                <div className="flex items-center text-gray-700 dark:text-gray-200">
+                                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-3">
+                                        <Users className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500">Team Size</p>
+                                        <span className="font-medium">{project.assignedTo?.length || 0} Members</span>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Action Button */}
                             {!isOwner && !isMember && (
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                                    <h3 className="font-bold text-gray-900 dark:text-white mb-2">Interested?</h3>
-                                    {myRequest ? (
-                                        <div className={`p-4 rounded-lg text-center ${myRequest.status === 'pending' ? 'bg-yellow-50 text-yellow-800' :
-                                            myRequest.status === 'accepted' ? 'bg-green-50 text-green-800' :
-                                                'bg-red-50 text-red-800'
-                                            }`}>
-                                            <p className="font-medium">Request {myRequest.status}</p>
-                                            {myRequest.status === 'pending' && <p className="text-xs mt-1">Waiting for approval</p>}
-                                        </div>
-                                    ) : showRequestForm ? (
-                                        <form onSubmit={handleJoinRequest} className="space-y-4">
-                                            <textarea
-                                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
-                                                rows="3"
-                                                placeholder="Why are you a good fit?"
-                                                value={requestMessage}
-                                                onChange={(e) => setRequestMessage(e.target.value)}
-                                                required
-                                            />
-                                            <div className="flex gap-2">
-                                                <Button type="submit" className="w-full">Send</Button>
-                                                <Button type="button" variant="secondary" onClick={() => setShowRequestForm(false)}>Cancel</Button>
-                                            </div>
-                                        </form>
-                                    ) : (
-                                        <Button className="w-full" onClick={() => setShowRequestForm(true)}>
-                                            Request to Join
-                                        </Button>
-                                    )}
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                                    <AnimatePresence mode='wait'>
+                                        {myRequest ? (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                className={`p-4 rounded-xl text-center border ${myRequest.status === 'pending' ? 'bg-yellow-50 border-yellow-100 text-yellow-800 dark:bg-yellow-900/10 dark:border-yellow-900/30 dark:text-yellow-400' :
+                                                    myRequest.status === 'accepted' ? 'bg-green-50 border-green-100 text-green-800 dark:bg-green-900/10 dark:border-green-900/30 dark:text-green-400' :
+                                                        'bg-red-50 border-red-100 text-red-800 dark:bg-red-900/10 dark:border-red-900/30 dark:text-red-400'
+                                                    }`}>
+                                                <p className="font-bold text-lg">Request {myRequest.status}</p>
+                                                {myRequest.status === 'pending' && <p className="text-sm mt-1 opacity-80">Waiting for project owner approval</p>}
+                                            </motion.div>
+                                        ) : showRequestForm ? (
+                                            <motion.form
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -20 }}
+                                                onSubmit={handleJoinRequest} className="space-y-4"
+                                            >
+                                                <h3 className="font-bold text-gray-900 dark:text-white">Apply to join</h3>
+                                                <textarea
+                                                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white transition-all shadow-sm"
+                                                    rows="4"
+                                                    placeholder="Why are you a good fit for this project? Highlight your relevant skills."
+                                                    value={requestMessage}
+                                                    onChange={(e) => setRequestMessage(e.target.value)}
+                                                    required
+                                                />
+                                                <div className="flex gap-2">
+                                                    <Button type="submit" className="w-full shadow-lg shadow-indigo-500/20">Send Application</Button>
+                                                    <Button type="button" variant="secondary" onClick={() => setShowRequestForm(false)}>Cancel</Button>
+                                                </div>
+                                            </motion.form>
+                                        ) : (
+                                            <motion.div
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                            >
+                                                <h3 className="font-bold text-gray-900 dark:text-white mb-2">Interested?</h3>
+                                                <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Join this project to collaborate and build your skills.</p>
+                                                <Button className="w-full h-12 text-lg shadow-lg shadow-indigo-500/20" onClick={() => setShowRequestForm(true)}>
+                                                    Request to Join
+                                                </Button>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             )}
 
                             {/* Team Members */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                                <h3 className="font-bold text-gray-900 dark:text-white mb-4">Team</h3>
-                                <div className="space-y-3">
-                                    <div className="flex items-center">
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                                <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-between">
+                                    Team <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full text-gray-500">{project.assignedTo?.length + (project.createdBy ? 1 : 0)}</span>
+                                </h3>
+                                <div className="space-y-4">
+                                    {/* Creator */}
+                                    <div className="flex items-center group cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-colors">
                                         {project.createdBy?.avatar ? (
-                                            <img src={(project.createdBy.avatar.startsWith('http') ? project.createdBy.avatar : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${project.createdBy.avatar}`)} alt={project.createdBy.name} className="h-8 w-8 rounded-full" />
+                                            <img src={(project.createdBy.avatar.startsWith('http') ? project.createdBy.avatar : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${project.createdBy.avatar}`)} alt={project.createdBy.name} className="h-10 w-10 rounded-full border-2 border-indigo-100 dark:border-indigo-900" />
                                         ) : (
-                                            <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                                            <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-bold text-sm">
                                                 {project.createdBy?.name?.charAt(0) || 'O'}
                                             </div>
                                         )}
                                         <div className="ml-3">
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">{project.createdBy?.name}</p>
-                                            <p className="text-xs text-gray-500">Owner</p>
+                                            <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{project.createdBy?.name}</p>
+                                            <div className="flex items-center gap-1">
+                                                <span className="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded text-[10px] font-bold uppercase">Owner</span>
+                                            </div>
                                         </div>
                                     </div>
+
+                                    {/* Divider */}
+                                    {project.assignedTo?.length > 0 && <div className="h-px bg-gray-100 dark:bg-gray-700 my-2"></div>}
+
+                                    {/* Members */}
                                     {project.assignedTo?.map((member) => (
-                                        <div key={member._id} className="flex items-center">
+                                        <div key={member._id} className="flex items-center group cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-colors">
                                             {member.avatar ? (
-                                                <img src={(member.avatar.startsWith('http') ? member.avatar : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${member.avatar}`)} alt={member.name} className="h-8 w-8 rounded-full" />
+                                                <img src={(member.avatar.startsWith('http') ? member.avatar : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${member.avatar}`)} alt={member.name} className="h-10 w-10 rounded-full border-2 border-white dark:border-gray-600" />
                                             ) : (
-                                                <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 font-bold text-xs">
+                                                <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-300 font-bold text-sm">
                                                     {member.name?.charAt(0)}
                                                 </div>
                                             )}
                                             <div className="ml-3">
-                                                <p className="text-sm font-medium text-gray-900 dark:text-white">{member.name}</p>
-                                                <p className="text-xs text-gray-500">Member</p>
+                                                <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{member.name}</p>
+                                                <p className="text-xs text-gray-500">{member.title || 'Member'}</p>
                                             </div>
                                         </div>
                                     ))}
                                     {(!project.assignedTo || project.assignedTo.length === 0) && (
-                                        <p className="text-sm text-gray-500 italic">No members yet</p>
+                                        <p className="text-sm text-gray-500 italic p-2 text-center">No other members yet</p>
                                     )}
                                 </div>
                             </div>
