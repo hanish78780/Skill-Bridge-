@@ -202,7 +202,7 @@ const ProjectDetails = () => {
 
 
             {/* Tab Content */}
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-y-auto">
                 {activeTab === 'overview' ? (
                     <div className="grid md:grid-cols-3 gap-8 pb-10">
                         <div className="md:col-span-2 space-y-8">
