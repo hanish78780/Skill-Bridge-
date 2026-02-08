@@ -8,7 +8,7 @@ const User = require('../models/User');
 // @access  Private
 exports.addReview = async (req, res) => {
     try {
-        const { revieweeId, rating, comment, projectId } = req.body;
+        const { reviewee: revieweeId, rating, comment, project: projectId } = req.body; // Map variables from body
 
         if (req.user.id === revieweeId) {
             return res.status(400).json({ message: 'You cannot review yourself' });
@@ -22,24 +22,40 @@ exports.addReview = async (req, res) => {
             }
 
             if (project.status !== 'completed') {
-                return res.status(400).json({ message: 'You can only review after the project is completed' });
+                return res.status(400).json({ message: `You can only review after the project is completed (Current: ${project.status})` });
             }
 
             // Verify participation
             const isCreator = project.createdBy.toString() === req.user.id;
-            const isAssigned = project.assignedTo.includes(req.user.id);
+            const isAssigned = project.assignedTo.some(id => id.toString() === req.user.id);
 
             const isRevieweeCreator = project.createdBy.toString() === revieweeId;
-            const isRevieweeAssigned = project.assignedTo.includes(revieweeId);
+            const isRevieweeAssigned = project.assignedTo.some(id => id.toString() === revieweeId);
+
+            console.log('[Review Debug] Participation Check:');
+            console.log(`- User: ${req.user.id}, Creator: ${project.createdBy.toString()} (isCreator: ${isCreator})`);
+            console.log(`- Reviewee: ${revieweeId} (isRevieweeCreator: ${isRevieweeCreator})`);
+            console.log(`- AssignedTo: ${JSON.stringify(project.assignedTo)}`);
+            console.log(`- isAssigned: ${isAssigned}, isRevieweeAssigned: ${isRevieweeAssigned}`);
 
             if (!((isCreator && isRevieweeAssigned) || (isAssigned && isRevieweeCreator))) {
-                return res.status(403).json({ message: 'You must be collaborators on this project to review' });
+                return res.status(403).json({
+                    message: "Forbidden: You must be collaborators to review.",
+                    debug: {
+                        userId: req.user.id,
+                        isCreator,
+                        isAssigned,
+                        revieweeId,
+                        isRevieweeCreator,
+                        isRevieweeAssigned
+                    }
+                });
             }
         } else {
             // For now, require project context for "Verified" reviews
-            // Or allow open reviews but mark them differently? 
+            // Or allow open reviews but mark them differently?
             // Let's enforce it for the "Resume Logic" to be strong.
-            return res.status(400).json({ message: 'Review must be associated with a completed project' });
+            return res.status(400).json({ message: 'Review must be associated with a completed project (ID missing)' });
         }
 
         // Check if user exists
@@ -88,7 +104,7 @@ exports.addReview = async (req, res) => {
         res.status(201).json(review);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 };
 

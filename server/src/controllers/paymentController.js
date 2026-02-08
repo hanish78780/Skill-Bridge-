@@ -8,6 +8,8 @@ const instance = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+
+
 exports.checkout = async (req, res) => {
     try {
         const options = {
