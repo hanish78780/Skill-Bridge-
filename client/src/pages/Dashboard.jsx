@@ -142,7 +142,7 @@ const Dashboard = () => {
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                             Suggested for you
                         </h2>
-                        <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                             <RecommendedProjects />
                         </div>
                     </div>
