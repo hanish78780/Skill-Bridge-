@@ -114,7 +114,7 @@ const AdminDashboard = () => {
                 {/* Project Status Chart */}
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Project Status</h2>
-                    <div className="h-80">
+                    <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
@@ -133,17 +133,17 @@ const AdminDashboard = () => {
                                 <Tooltip />
                             </PieChart>
                         </ResponsiveContainer>
-                        <div className="mt-4 space-y-2">
-                            {projectStatusData.map((entry, index) => (
-                                <div key={entry.name} className="flex items-center justify-between text-sm">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                                        <span className="text-gray-600 dark:text-gray-300 capitalize">{entry.name}</span>
-                                    </div>
-                                    <span className="font-medium text-gray-900 dark:text-white">{entry.value}</span>
+                    </div>
+                    <div className="mt-4 space-y-2">
+                        {projectStatusData.map((entry, index) => (
+                            <div key={entry.name} className="flex items-center justify-between text-sm">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                                    <span className="text-gray-600 dark:text-gray-300 capitalize">{entry.name}</span>
                                 </div>
-                            ))}
-                        </div>
+                                <span className="font-medium text-gray-900 dark:text-white">{entry.value}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
