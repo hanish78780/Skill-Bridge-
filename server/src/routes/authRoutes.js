@@ -28,7 +28,11 @@ router.post('/register', register);
 router.post('/login', login);
 router.get('/me', protect, getMe);
 // Upload Avatar
-const upload = require('../config/upload'); // Import multer config
+// Upload Avatar
+const multer = require('multer');
+const { storage } = require('../config/cloudinary');
+const upload = multer({ storage });
+
 router.post('/upload-avatar', protect, upload.single('avatar'), uploadAvatar);
 router.post('/upload-cover', protect, upload.single('coverImage'), uploadCover);
 router.put('/updatedetails', protect, updateDetails);

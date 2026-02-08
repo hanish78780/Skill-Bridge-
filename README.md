@@ -2,6 +2,14 @@
 
 **SkillBridge** is a full-stack project management and skills platform designed to streamline collaboration and showcase professional portfolios. Built with the MERN stack (MongoDB, Express, React, Node.js), it features secure authentication, role-based access control, and a premium user interface.
 
+## 📚 Documentation
+
+For detailed information about the project, please refer to the documents in the `docs` folder:
+
+- **[Project Documentation (PDF)](docs/SkillBridge_Project_Documentation.pdf)** - Comprehensive overview of features, tech stack, and architecture.
+- **[Software Requirements Specification (PDF)](docs/SkillBridge_SRS.pdf)** - Detailed requirements and specifications.
+- **[LinkedIn Post Drafts](docs/LinkedIn_Post.md)** - Ready-to-use social media content.
+
 ## 🌟 Features
 
 - **Authentication**: Secure JWT-based registration and login with HttpOnly cookies.

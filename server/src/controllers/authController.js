@@ -126,8 +126,8 @@ const uploadAvatar = async (req, res, next) => {
             return res.status(400).json({ message: 'Please upload a file' });
         }
 
-        // Construct file path relative to server root
-        const avatarPath = `/uploads/${req.file.filename}`;
+        // Cloudinary returns the URL in req.file.path
+        const avatarPath = req.file.path;
 
         const user = await User.findByIdAndUpdate(req.user.id, { avatar: avatarPath }, {
             new: true
@@ -225,8 +225,8 @@ const uploadCover = async (req, res, next) => {
             return res.status(400).json({ message: 'Please upload a file' });
         }
 
-        // Construct file path relative to server root
-        const coverPath = `/uploads/${req.file.filename}`;
+        // Cloudinary returns the URL in req.file.path
+        const coverPath = req.file.path;
 
         const user = await User.findByIdAndUpdate(req.user.id, { coverImage: coverPath }, {
             new: true
