@@ -137,11 +137,14 @@ const Dashboard = () => {
                     {/* Widget Area */}
                     <ProfileCompletionWidget user={user} hasProjects={hasProjects} />
 
-                    <div className="space-y-6">
+
+                    <div className="space-y-4">
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                             Suggested for you
                         </h2>
-                        <RecommendedProjects />
+                        <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                            <RecommendedProjects />
+                        </div>
                     </div>
                 </div>
             </div>
