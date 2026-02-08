@@ -19,6 +19,38 @@ const getAdminStats = async (req, res, next) => {
             .limit(5)
             .select('name email createdAt status');
 
+        // Recent Projects
+        const recentProjects = await Project.find()
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .populate('createdBy', 'name email')
+            .select('title status createdAt createdBy');
+
+        // Project Status Stats (for Pie Chart)
+        const projectStats = await Project.aggregate([
+            { $group: { _id: '$status', count: { $sum: 1 } } }
+        ]);
+
+        // User Growth Stats (Last 6 months)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        const userGrowth = await User.aggregate([
+            {
+                $match: { createdAt: { $gte: sixMonthsAgo } }
+            },
+            {
+                $group: {
+                    _id: {
+                        month: { $month: '$createdAt' },
+                        year: { $year: '$createdAt' }
+                    },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { '_id.year': 1, '_id.month': 1 } }
+        ]);
+
         res.status(200).json({
             counts: {
                 totalUsers,
@@ -26,7 +58,12 @@ const getAdminStats = async (req, res, next) => {
                 totalProjects,
                 pendingReports
             },
-            recentUsers
+            recentUsers,
+            recentProjects,
+            charts: {
+                projectStatus: projectStats,
+                userGrowth
+            }
         });
     } catch (error) {
         next(error);

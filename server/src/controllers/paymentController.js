@@ -12,6 +12,10 @@ const instance = new Razorpay({
 
 exports.checkout = async (req, res) => {
     try {
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            throw new Error("Razorpay keys are missing in server environment variables");
+        }
+
         const options = {
             amount: Number(req.body.amount * 100), // amount in the smallest currency unit
             currency: "INR",
@@ -27,6 +31,7 @@ exports.checkout = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Order creation failed",
+            error: error.message
         });
     }
 };
