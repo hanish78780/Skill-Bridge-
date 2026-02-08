@@ -24,6 +24,9 @@ import Layout from './Layout';
 import AdminDashboard from '../pages/Admin/AdminDashboard';
 import AdminUsers from '../pages/Admin/AdminUsers';
 import AdminReports from '../pages/Admin/AdminReports';
+import HelpCenter from '../pages/HelpCenter';
+import PrivacyPolicy from '../pages/PrivacyPolicy';
+import TermsOfService from '../pages/TermsOfService';
 
 const AnimatedRoutes = () => {
     const location = useLocation();
@@ -35,6 +38,9 @@ const AnimatedRoutes = () => {
                 {/* Public & Protected Routes Wrapped in Main Layout */}
                 <Route element={<Layout><Outlet /></Layout>}>
                     <Route path="/" element={<Home />} />
+                    <Route path="/help" element={<HelpCenter />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<TermsOfService />} />
                     <Route path="/profile/:id" element={<PublicProfile />} />
                     <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
                     <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />

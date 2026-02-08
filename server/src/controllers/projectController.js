@@ -46,31 +46,72 @@ const getProjects = async (req, res, next) => {
     }
 };
 
+// @desc    Get user's projects (Created or Member)
+// @route   GET /api/projects/my
+// @access  Private
+const getMyProjects = async (req, res, next) => {
+    try {
+        const projects = await Project.find({
+            $or: [
+                { createdBy: req.user.id },
+                { assignedTo: req.user.id }
+            ]
+        })
+            .populate('createdBy', 'name avatar')
+            .populate('assignedTo', 'name avatar') // useful to see team
+            .sort({ updatedAt: -1 });
+
+        res.status(200).json(projects);
+    } catch (error) {
+        next(error);
+    }
+};
+
 // @desc    Get Recommended Projects based on User Skills
 // @route   GET /api/projects/recommended
 // @access  Private
 const getRecommendedProjects = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id);
-        if (!user || !user.skills || user.skills.length === 0) {
-            return res.json([]);
+
+        let projects = [];
+        let userSkillNames = [];
+
+        if (user && user.skills && user.skills.length > 0) {
+            userSkillNames = user.skills.map(s => s.name);
+
+            // 1. Try finding by skills
+            projects = await Project.find({
+                status: 'active',
+                createdBy: { $ne: req.user.id },
+                requiredSkills: { $in: userSkillNames }
+            })
+                .populate('createdBy', 'name avatar')
+                .limit(5);
         }
 
-        const userSkillNames = user.skills.map(s => s.name);
+        // 2. Fallback: If no skill matches or no skills, get recent active projects
+        if (projects.length === 0) {
+            projects = await Project.find({
+                status: 'active',
+                createdBy: { $ne: req.user.id }
+            })
+                .populate('createdBy', 'name avatar')
+                .sort({ createdAt: -1 })
+                .limit(5);
+        }
 
-        const projects = await Project.find({
-            status: 'active',
-            createdBy: { $ne: req.user.id },
-            requiredSkills: { $in: userSkillNames }
-        })
-            .populate('createdBy', 'name avatar')
-            .limit(5);
+        // Calculate match score
+        const rankedProjects = projects.map(project => {
+            const matchCount = project.requiredSkills ? project.requiredSkills.filter(skill => userSkillNames.includes(skill)).length : 0;
+            const totalRequired = project.requiredSkills ? project.requiredSkills.length : 1;
+            const matchScore = Math.round((matchCount / totalRequired) * 100);
 
-        const rankedProjects = projects.sort((a, b) => {
-            const aMatches = a.requiredSkills.filter(skill => userSkillNames.includes(skill)).length;
-            const bMatches = b.requiredSkills.filter(skill => userSkillNames.includes(skill)).length;
-            return bMatches - aMatches;
-        });
+            return {
+                ...project.toObject(),
+                matchScore
+            };
+        }).sort((a, b) => b.matchScore - a.matchScore);
 
         res.json(rankedProjects);
     } catch (error) {
@@ -365,5 +406,6 @@ module.exports = {
     addTask,
     updateTask,
     getRecommendedProjects,
-    getDashboardStats
+    getDashboardStats,
+    getMyProjects
 };

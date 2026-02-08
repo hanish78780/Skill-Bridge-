@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, Plus, Filter, X } from 'lucide-react';
 import Button from '../components/UI/Button';
 import ProjectCard from '../components/Projects/ProjectCard';
@@ -11,6 +11,7 @@ import { usePayment } from '../context/PaymentContext';
 
 const Projects = () => {
     const { handleCreateProjectClick } = usePayment();
+    const navigate = useNavigate();
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -66,7 +67,12 @@ const Projects = () => {
                         <p className="text-gray-500 dark:text-gray-400 mt-1">Find the perfect project to build your skills.</p>
                     </div>
                     <Button
-                        onClick={handleCreateProjectClick}
+                        onClick={async (e) => {
+                            const canProceed = await handleCreateProjectClick(e);
+                            if (canProceed) {
+                                navigate('/projects/new');
+                            }
+                        }}
                         className="shadow-lg shadow-indigo-500/20"
                     >
                         <Plus className="h-5 w-5 mr-1" /> Create Project

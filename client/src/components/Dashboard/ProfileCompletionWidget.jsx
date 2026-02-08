@@ -139,10 +139,13 @@ const ProfileCompletionWidget = ({ user, hasProjects }) => {
                     // Logic to handle project creation limits
                     const isProjectStep = step.id === 'project';
 
-                    const handleClick = (e) => {
+                    const handleClick = async (e) => {
                         if (isProjectStep) {
                             e.preventDefault();
-                            handleCreateProjectClick();
+                            const canProceed = await handleCreateProjectClick(e);
+                            if (canProceed) {
+                                navigate('/projects/new');
+                            }
                         }
                     };
 

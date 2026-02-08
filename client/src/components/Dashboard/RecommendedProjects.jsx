@@ -46,9 +46,16 @@ const RecommendedProjects = () => {
                         <h4 className="font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 transition-colors text-lg">
                             {project.title}
                         </h4>
-                        <span className="text-xs font-medium px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300">
-                            {new Date(project.createdAt).toLocaleDateString()}
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                            {project.matchScore > 0 && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                                    {project.matchScore}% Match
+                                </span>
+                            )}
+                            <span className="text-xs font-medium px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300">
+                                {new Date(project.createdAt).toLocaleDateString()}
+                            </span>
+                        </div>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 leading-relaxed">{project.description}</p>
                     <div className="flex flex-wrap gap-2 mb-4">

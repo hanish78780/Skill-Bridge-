@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Briefcase, Github, Linkedin, Twitter, Facebook } from 'lucide-react';
+import { Briefcase, Github, Linkedin, Instagram, Facebook } from 'lucide-react';
 
 const Footer = () => {
     return (
@@ -18,16 +18,16 @@ const Footer = () => {
                             Connect, collaborate, and showcase your skills. The premium platform for developers to manage projects and build their portfolio.
                         </p>
                         <div className="flex space-x-4 mt-6">
-                            <a href="#" className="text-gray-400 hover:text-indigo-600 transition-colors">
+                            <a href="https://github.com/hanish78780" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-indigo-600 transition-colors">
                                 <Github className="h-5 w-5" />
                             </a>
-                            <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors">
+                            <a href="https://www.linkedin.com/in/hanishsinghal" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-500 transition-colors">
                                 <Linkedin className="h-5 w-5" />
                             </a>
-                            <a href="#" className="text-gray-400 hover:text-sky-500 transition-colors">
-                                <Twitter className="h-5 w-5" />
+                            <a href="https://www.instagram.com/infinite_hanish" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-pink-500 transition-colors">
+                                <Instagram className="h-5 w-5" />
                             </a>
-                            <a href="#" className="text-gray-400 hover:text-blue-700 transition-colors">
+                            <a href="https://www.facebook.com/hanish.singhal.77" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-700 transition-colors">
                                 <Facebook className="h-5 w-5" />
                             </a>
                         </div>
@@ -47,9 +47,9 @@ const Footer = () => {
                     <div>
                         <h3 className="text-sm font-bold text-gray-900 dark:text-white tracking-wider uppercase mb-4">Support</h3>
                         <ul className="space-y-3">
-                            <li><a href="#" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Help Center</a></li>
-                            <li><a href="#" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Privacy Policy</a></li>
-                            <li><a href="#" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Terms of Service</a></li>
+                            <li><Link to="/help" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Help Center</Link></li>
+                            <li><Link to="/privacy" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Privacy Policy</Link></li>
+                            <li><Link to="/terms" className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Terms of Service</Link></li>
                         </ul>
                     </div>
                 </div>

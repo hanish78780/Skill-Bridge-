@@ -5,7 +5,7 @@ import { usePayment } from '../context/PaymentContext'; // Import context
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Folder, Clock, CheckCircle } from 'lucide-react';
 import Button from '../components/UI/Button';
-import KanbanBoard from '../components/KanbanBoard';
+import ProjectCard from '../components/Projects/ProjectCard';
 import ProfileCompletionWidget from '../components/Dashboard/ProfileCompletionWidget';
 import RecommendedProjects from '../components/Dashboard/RecommendedProjects';
 
@@ -17,22 +17,27 @@ const Dashboard = () => {
         { label: 'Pending Tasks', value: '0', icon: <Clock className="text-orange-500" /> },
         { label: 'Completed', value: '0', icon: <CheckCircle className="text-green-500" /> },
     ]);
+    const [myProjects, setMyProjects] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchStats = async () => {
+        const fetchData = async () => {
             try {
-                const { data } = await axios.get('/projects/stats');
+                const statsRes = await axios.get('/projects/stats');
                 setStats([
-                    { label: 'Active Projects', value: data.activeProjects, icon: <Folder className="text-blue-500" /> },
-                    { label: 'Pending Tasks', value: data.pendingTasks, icon: <Clock className="text-orange-500" /> },
-                    { label: 'Completed', value: data.completedProjects, icon: <CheckCircle className="text-green-500" /> },
+                    { label: 'Active Projects', value: statsRes.data.activeProjects, icon: <Folder className="text-blue-500" /> },
+                    { label: 'Pending Tasks', value: statsRes.data.pendingTasks, icon: <Clock className="text-orange-500" /> },
+                    { label: 'Completed', value: statsRes.data.completedProjects, icon: <CheckCircle className="text-green-500" /> },
                 ]);
+
+                const projectsRes = await axios.get('/projects/my');
+                setMyProjects(projectsRes.data);
+
             } catch (error) {
-                console.error('Failed to fetch dashboard stats', error);
+                console.error('Failed to fetch dashboard data', error);
             }
         };
-        fetchStats();
+        fetchData();
     }, []);
 
     // Helper to determine if user has projects based on stats
@@ -46,7 +51,10 @@ const Dashboard = () => {
                     <p className="text-gray-500 dark:text-gray-400 mt-2 text-lg">Welcome back, {user?.name}</p>
                 </div>
                 <Button
-                    onClick={handleCreateProjectClick}
+                    onClick={async (e) => {
+                        const canProceed = await handleCreateProjectClick(e);
+                        if (canProceed) navigate('/projects/new');
+                    }}
                     className="shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5"
                 >
                     <Plus className="h-5 w-5 mr-2" /> New Project
@@ -92,10 +100,35 @@ const Dashboard = () => {
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                                 <Folder className="h-6 w-6 text-indigo-600" />
-                                Project Board
+                                My Projects
                             </h2>
+                            <Link to="/projects" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                View All
+                            </Link>
                         </div>
-                        <KanbanBoard />
+
+                        {myProjects.length > 0 ? (
+                            <div className="grid grid-cols-1 gap-6">
+                                {myProjects.map(project => (
+                                    <ProjectCard key={project._id} project={project} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+                                <Folder className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-white">No active projects</h3>
+                                <p className="mt-1 text-gray-500 mb-6">Create a project or join one to get started.</p>
+                                <Button
+                                    onClick={async (e) => {
+                                        const canProceed = await handleCreateProjectClick(e);
+                                        if (canProceed) navigate('/projects/new');
+                                    }}
+                                    variant="secondary"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" /> Create Project
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
 

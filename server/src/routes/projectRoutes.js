@@ -9,7 +9,8 @@ const {
     addTask,
     updateTask,
     getRecommendedProjects,
-    getDashboardStats
+    getDashboardStats,
+    getMyProjects
 } = require('../controllers/projectController');
 const { protect } = require('../middleware/authMiddleware');
 const { checkProjectRole } = require('../middleware/roleMiddleware');
@@ -19,6 +20,7 @@ router.route('/')
     .post(protect, createProject);
 
 router.get('/recommended', protect, getRecommendedProjects);
+router.get('/my', protect, getMyProjects);
 router.get('/stats', protect, getDashboardStats);
 
 router.route('/:id')

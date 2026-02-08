@@ -18,7 +18,7 @@ const adminLogSchema = new mongoose.Schema({
     targetModel: {
         type: String,
         required: true,
-        enum: ['User', 'Project', 'Review', 'Report'] // Added 'Report'
+        enum: ['User', 'Project', 'Review']
     },
     reason: {
         type: String

@@ -5,10 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import Button from '../components/UI/Button';
-import { Calendar, Clock, Users, CheckCircle, AlertCircle, Edit, Trash2, Layout, Kanban, FileText } from 'lucide-react';
+import { Calendar, Clock, Users, CheckCircle, AlertCircle, Edit, Trash2, Layout, Kanban, FileText, Star, MessageSquare, MapPin, Tag, Briefcase, Heart, Copy, X } from 'lucide-react';
 import KanbanBoard from '../components/Projects/KanbanBoard';
+import ReviewModal from '../components/Reviews/ReviewModal';
+
 import ActivityFeed from '../components/Projects/ActivityFeed';
 import ReportModal from '../components/UI/ReportModal';
+import ConfirmationModal from '../components/UI/ConfirmationModal';
+import ProjectComments from '../components/Projects/ProjectComments';
 import clsx from 'clsx';
 
 const ProjectDetails = () => {
@@ -26,6 +30,10 @@ const ProjectDetails = () => {
     const [showRequestForm, setShowRequestForm] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
     const [showReportModal, setShowReportModal] = useState(false);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [reviewTargetUser, setReviewTargetUser] = useState(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
 
 
     useEffect(() => {
@@ -38,21 +46,32 @@ const ProjectDetails = () => {
 
             // Fetch project data
             const projectRes = await axios.get(`/projects/${id}`);
-            setProject(projectRes.data);
+            const projectData = projectRes.data;
+            setProject(projectData);
 
-            // Try to fetch requests, but don't fail if it errors (403, etc.)
-            try {
-                const requestsRes = await axios.get(`/requests/project/${id}`);
-                setRequests(requestsRes.data);
+            // Check ownership directly from the fetched data
+            const isProjectOwner = user && projectData.createdBy?._id === (user.id || user._id);
 
-                if (user) {
-                    const myReq = requestsRes.data.find(r => r.user?._id === (user.id || user._id));
-                    setMyRequest(myReq);
+            // Fetch requests based on role
+            if (user) {
+                if (isProjectOwner) {
+                    // Owner: Fetch all requests for this project
+                    try {
+                        const requestsRes = await axios.get(`/requests/project/${id}`);
+                        setRequests(requestsRes.data);
+                    } catch (err) {
+                        console.warn('Failed to fetch project requests', err);
+                    }
+                } else {
+                    // Non-owner: Fetch "my" requests to see status
+                    try {
+                        const myRequestsRes = await axios.get('/requests/me');
+                        const myReq = myRequestsRes.data.find(r => r.project?._id === id || r.project === id);
+                        setMyRequest(myReq);
+                    } catch (err) {
+                        console.warn('Failed to fetch my requests', err);
+                    }
                 }
-            } catch (requestErr) {
-                // Silently fail if requests endpoint is not accessible
-                console.warn('Could not fetch project requests:', requestErr.response?.status);
-                setRequests([]);
             }
 
             setError(null);
@@ -89,13 +108,23 @@ const ProjectDetails = () => {
     };
 
     const handleDelete = async () => {
-        if (!window.confirm('Are you sure you want to delete this project?')) return;
         try {
             await axios.delete(`/projects/${id}`);
             success('Project deleted successfully');
             navigate('/dashboard');
         } catch (err) {
             toastError('Failed to delete project');
+        }
+    };
+
+    const handleCompleteProject = async () => {
+        try {
+            await axios.put(`/projects/${id}`, { status: 'completed' });
+            success('Project marked as completed!');
+            fetchProjectData();
+            setShowCompleteConfirm(false);
+        } catch (err) {
+            toastError('Failed to update project status');
         }
     };
 
@@ -126,297 +155,286 @@ const ProjectDetails = () => {
     }
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-12 h-[calc(100vh-100px)] flex flex-col">
+        <div className="max-w-7xl mx-auto animate-fade-in pb-12 min-h-[calc(100vh-100px)] flex flex-col">
             <ReportModal
                 isOpen={showReportModal}
                 onClose={() => setShowReportModal(false)}
                 targetId={id}
                 targetModel="Project"
             />
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start gap-4 flex-shrink-0">
-                <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{project.title}</h1>
-                        <span className={`px-2.5 py-0.5 text-xs rounded-full uppercase font-bold tracking-wide shadow-sm ${project.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                            project.status === 'active' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                                'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-                            }`}>
-                            {project.status}
-                        </span>
+            <ReviewModal
+                isOpen={showReviewModal}
+                onClose={() => setShowReviewModal(false)}
+                project={project}
+                targetUser={reviewTargetUser}
+                onReviewSuccess={() => { }}
+            />
+            <ConfirmationModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleDelete}
+                title="Delete Project"
+                message="Are you sure you want to delete this project?"
+                confirmText="Delete Project"
+                variant="danger"
+            />
+            <ConfirmationModal
+                isOpen={showCompleteConfirm}
+                onClose={() => setShowCompleteConfirm(false)}
+                onConfirm={handleCompleteProject}
+                title="Complete Project"
+                message="Mark as complete to enable reviews?"
+                confirmText="Mark as Complete"
+                variant="primary"
+            />
+
+            {/* Main Content Area */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+
+                {/* Header */}
+                <div className="p-8 border-b border-gray-200 dark:border-gray-800">
+                    <div className="flex justify-between items-start gap-4">
+                        <div className="space-y-4">
+                            <h1 className="text-3xl font-medium text-gray-900 dark:text-white leading-tight">
+                                {project.title}
+                            </h1>
+                            <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+                                <span>Posted {new Date(project.createdAt).toLocaleDateString()}</span>
+                                <div className="flex items-center gap-1">
+                                    <MapPin className="h-4 w-4" />
+                                    <span>Worldwide</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Owner Actions */}
+                        <div className="flex gap-2 shrink-0">
+                            {isOwner && (
+                                <>
+                                    <Link to={`/projects/${id}/edit`}>
+                                        <Button variant="secondary" className="rounded-full">
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                    <Button variant="danger" onClick={() => setShowDeleteConfirm(true)} className="rounded-full w-10 h-10 p-0 flex items-center justify-center">
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex gap-2">
-                    {user && !isOwner && (
-                        <Button variant="secondary" onClick={() => setShowReportModal(true)} className="text-gray-500 hover:text-red-500 border-gray-200 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-900/50">
-                            <AlertCircle className="h-4 w-4 mr-2" /> Report
-                        </Button>
-                    )}
-                    {isOwner && (
-                        <>
-                            <Link to={`/projects/${id}/edit`}>
-                                <Button variant="secondary">
-                                    <Edit className="h-4 w-4 mr-2" /> Edit
-                                </Button>
-                            </Link>
-                            <Button variant="danger" onClick={handleDelete}>
-                                <Trash2 className="h-4 w-4 mr-2" /> Delete
-                            </Button>
-                        </>
-                    )}
+                {/* Navigation Tabs (if needed, or just keep Overview as main) */}
+                <div className="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900">
+                    <button
+                        onClick={() => setActiveTab('overview')}
+                        className={clsx("px-8 py-4 font-medium text-sm border-b-2 transition-colors", activeTab === 'overview' ? "border-black dark:border-white text-black dark:text-white" : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400")}
+                    >
+                        View Job
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('board')}
+                        className={clsx("px-8 py-4 font-medium text-sm border-b-2 transition-colors", activeTab === 'board' ? "border-black dark:border-white text-black dark:text-white" : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400")}
+                    >
+                        Project Board
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('discussion')}
+                        className={clsx("px-8 py-4 font-medium text-sm border-b-2 transition-colors", activeTab === 'discussion' ? "border-black dark:border-white text-black dark:text-white" : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400")}
+                    >
+                        Discussion
+                    </button>
                 </div>
-            </div>
 
-            {/* Tabs */}
-            <div className="flex border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
-                <button
-                    onClick={() => setActiveTab('overview')}
-                    className={clsx(
-                        "px-6 py-3 font-medium text-sm flex items-center transition-all relative",
-                        activeTab === 'overview'
-                            ? "text-indigo-600 dark:text-indigo-400"
-                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                    )}
-                >
-                    <FileText className="h-4 w-4 mr-2" /> Overview
-                    {activeTab === 'overview' && (
-                        <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400" />
-                    )}
-                </button>
-                <button
-                    onClick={() => setActiveTab('board')}
-                    className={clsx(
-                        "px-6 py-3 font-medium text-sm flex items-center transition-all relative",
-                        activeTab === 'board'
-                            ? "text-indigo-600 dark:text-indigo-400"
-                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                    )}
-                >
-                    <Kanban className="h-4 w-4 mr-2" /> Project Board
+                <div className="flex flex-col md:flex-row">
+                    {/* Left Column (Details) */}
+                    <div className={clsx("flex-1 p-8 border-r border-gray-200 dark:border-gray-800", activeTab !== 'overview' && "hidden")}>
+
+                        {/* Summary */}
+                        <section className="mb-10">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Summary</h3>
+                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line text-[15px]">
+                                {project.description}
+                            </p>
+                        </section>
+
+                        {/* Project Attributes Grid */}
+                        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8 border-y border-gray-200 dark:border-gray-800 mb-10">
+                            <div className="flex gap-3">
+                                <Tag className="h-5 w-5 text-gray-900 dark:text-white mt-1" />
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-white text-base">₹{project.budget || 'Negotiable'}</p>
+                                    <p className="text-sm text-gray-500">Fixed-price</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-3">
+                                <Briefcase className="h-5 w-5 text-gray-900 dark:text-white mt-1" />
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-white text-base">{project.difficulty || 'Intermediate'}</p>
+                                    <p className="text-sm text-gray-500">Experience Level</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-3">
+                                <Calendar className="h-5 w-5 text-gray-900 dark:text-white mt-1" />
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-white text-base">One-time project</p>
+                                    <p className="text-sm text-gray-500">Project Type</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Skills */}
+                        <section className="mb-10">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Skills and Expertise</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {project.requiredSkills?.map((skill, idx) => (
+                                    <span key={idx} className="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-default">
+                                        {skill}
+                                    </span>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Activity Stats */}
+                        <section className="mb-8">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Activity on this job</h3>
+                            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                                <p>Proposals: <span className="font-medium text-gray-900 dark:text-white">{requests.length > 0 ? requests.length : 'Less than 5'}</span></p>
+                                <p>Last viewed by client: <span className="font-medium text-gray-900 dark:text-white">5 hours ago</span></p>
+                                <p>Interviewing: <span className="font-medium text-gray-900 dark:text-white">{project.assignedTo?.length || 0}</span></p>
+                                <p>Unanswered invites: <span className="font-medium text-gray-900 dark:text-white">0</span></p>
+                            </div>
+                        </section>
+
+                    </div>
+                    {/* End Left Column */}
+
+                    {/* Content for other tabs */}
                     {activeTab === 'board' && (
-                        <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400" />
+                        <div className="flex-1 p-0 overflow-hidden h-[calc(100vh-280px)]">
+                            <KanbanBoard
+                                projectId={id}
+                                tasks={project.tasks || []}
+                                members={[project.createdBy, ...(project.assignedTo || [])].filter(Boolean)}
+                                onTaskUpdate={fetchProjectData}
+                                readOnly={!isOwner && !isMember}
+                            />
+                        </div>
                     )}
-                </button>
-            </div>
-
-
-            {/* Tab Content */}
-            <div className="flex-1 min-h-0 overflow-y-auto">
-                {activeTab === 'overview' ? (
-                    <div className="grid md:grid-cols-3 gap-8 pb-10">
-                        <div className="md:col-span-2 space-y-8">
-                            {/* Description */}
-                            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                                <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Description</h2>
-                                <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed text-lg">
-                                    {project.description}
-                                </p>
-                            </div>
-
-                            {/* Required Skills */}
-                            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                                <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Required Skills</h2>
-                                <div className="flex flex-wrap gap-2">
-                                    {project.requiredSkills?.map((skill, idx) => (
-                                        <span key={idx} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium border border-indigo-100 dark:border-indigo-800/50">
-                                            {skill}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Incoming Requests (Owner Only) */}
-                            {isOwner && requests.length > 0 && (
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                                    <h2 className="text-xl font-bold mb-4 flex items-center text-gray-900 dark:text-white">
-                                        <div className="bg-orange-100 dark:bg-orange-900/30 p-1.5 rounded-lg mr-2">
-                                            <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                                        </div>
-                                        Join Requests ({requests.length})
-                                    </h2>
-                                    <div className="space-y-4">
-                                        {requests.map((req) => (
-                                            <div key={req._id} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
-                                                <div>
-                                                    <p className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                                        {req.user?.name}
-                                                        <span className="text-xs font-normal text-gray-500 bg-white dark:bg-gray-700 px-2 py-0.5 rounded border border-gray-200 dark:border-gray-600">{req.user?.title}</span>
-                                                    </p>
-                                                    {req.message && <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 italic">"{req.message}"</p>}
-                                                </div>
-                                                {req.status === 'pending' ? (
-                                                    <div className="flex gap-2">
-                                                        <Button size="sm" onClick={() => handleRequestAction(req._id, 'accepted')} className="bg-green-600 hover:bg-green-700 shadow-sm border-transparent text-white">
-                                                            Accept
-                                                        </Button>
-                                                        <Button size="sm" variant="danger" onClick={() => handleRequestAction(req._id, 'rejected')}>
-                                                            Reject
-                                                        </Button>
-                                                    </div>
-                                                ) : (
-                                                    <span className={`text-sm font-bold ${req.status === 'accepted' ? 'text-green-600' : 'text-red-600'
-                                                        }`}>
-                                                        {req.status.toUpperCase()}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
+                    {activeTab === 'discussion' && (
+                        <div className="flex-1 p-8 h-[calc(100vh-280px)] overflow-y-auto">
+                            {(isOwner || isMember) ? (
+                                <ProjectComments projectId={id} />
+                            ) : (
+                                <div className="text-center py-12">
+                                    <AlertCircle className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+                                    <p className="text-gray-500">Join the project to view discussion.</p>
                                 </div>
                             )}
                         </div>
+                    )}
 
-                        {/* Sidebar */}
-                        <div className="space-y-6">
-                            {/* Metadata */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-5">
-                                <div className="flex items-center text-gray-700 dark:text-gray-200">
-                                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-3">
-                                        <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+
+                    {/* Right Sidebar (Client Info & Actions) */}
+                    {activeTab === 'overview' && (
+                        <div className="w-full md:w-80 p-8 shrink-0 bg-gray-50/50 dark:bg-gray-800/20">
+                            {/* Action Buttons */}
+                            <div className="mb-8 space-y-3">
+                                {!isOwner && !isMember && (
+                                    <>
+                                        <Button onClick={() => setShowRequestForm(true)} className="w-full h-10 shadow-sm bg-green-600 hover:bg-green-700 text-white border-transparent rounded-full font-medium">
+                                            Apply Now
+                                        </Button>
+                                        <Button variant="secondary" className="w-full h-10 rounded-full bg-white dark:bg-gray-800 border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/10 flex items-center justify-center gap-2">
+                                            <Heart className="h-4 w-4" /> Save Job
+                                        </Button>
+                                    </>
+                                )}
+                                {isOwner && (
+                                    <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl mb-4 text-center">
+                                        <p className="text-sm font-medium text-indigo-900 dark:text-indigo-300">This is your project</p>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500">Deadline</p>
-                                        <span className="font-medium">{project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-center text-gray-700 dark:text-gray-200">
-                                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-3">
-                                        <Clock className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500">Posted On</p>
-                                        <span className="font-medium">{new Date(project.createdAt).toLocaleDateString()}</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-center text-gray-700 dark:text-gray-200">
-                                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-3">
-                                        <Users className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500">Team Size</p>
-                                        <span className="font-medium">{project.assignedTo?.length || 0} Members</span>
-                                    </div>
-                                </div>
+                                )}
                             </div>
 
-                            {/* Action Button */}
-                            {!isOwner && !isMember && (
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-                                    <AnimatePresence mode='wait'>
-                                        {myRequest ? (
-                                            <motion.div
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: 'auto' }}
-                                                className={`p-4 rounded-xl text-center border ${myRequest.status === 'pending' ? 'bg-yellow-50 border-yellow-100 text-yellow-800 dark:bg-yellow-900/10 dark:border-yellow-900/30 dark:text-yellow-400' :
-                                                    myRequest.status === 'accepted' ? 'bg-green-50 border-green-100 text-green-800 dark:bg-green-900/10 dark:border-green-900/30 dark:text-green-400' :
-                                                        'bg-red-50 border-red-100 text-red-800 dark:bg-red-900/10 dark:border-red-900/30 dark:text-red-400'
-                                                    }`}>
-                                                <p className="font-bold text-lg">Request {myRequest.status}</p>
-                                                {myRequest.status === 'pending' && <p className="text-sm mt-1 opacity-80">Waiting for project owner approval</p>}
-                                            </motion.div>
-                                        ) : showRequestForm ? (
-                                            <motion.form
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -20 }}
-                                                onSubmit={handleJoinRequest} className="space-y-4"
-                                            >
-                                                <h3 className="font-bold text-gray-900 dark:text-white">Apply to join</h3>
-                                                <textarea
-                                                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white transition-all shadow-sm"
-                                                    rows="4"
-                                                    placeholder="Why are you a good fit for this project? Highlight your relevant skills."
-                                                    value={requestMessage}
-                                                    onChange={(e) => setRequestMessage(e.target.value)}
-                                                    required
-                                                />
-                                                <div className="flex gap-2">
-                                                    <Button type="submit" className="w-full shadow-lg shadow-indigo-500/20">Send Application</Button>
-                                                    <Button type="button" variant="secondary" onClick={() => setShowRequestForm(false)}>Cancel</Button>
-                                                </div>
-                                            </motion.form>
-                                        ) : (
-                                            <motion.div
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                            >
-                                                <h3 className="font-bold text-gray-900 dark:text-white mb-2">Interested?</h3>
-                                                <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Join this project to collaborate and build your skills.</p>
-                                                <Button className="w-full h-12 text-lg shadow-lg shadow-indigo-500/20" onClick={() => setShowRequestForm(true)}>
-                                                    Request to Join
-                                                </Button>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-                            )}
-
-                            {/* Team Members */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                                <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-between">
-                                    Team <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full text-gray-500">{project.assignedTo?.length + (project.createdBy ? 1 : 0)}</span>
-                                </h3>
+                            {/* About Client */}
+                            <section>
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">About the client</h3>
                                 <div className="space-y-4">
-                                    {/* Creator */}
-                                    <div className="flex items-center group cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-colors">
-                                        {project.createdBy?.avatar ? (
-                                            <img src={(project.createdBy.avatar.startsWith('http') ? project.createdBy.avatar : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${project.createdBy.avatar}`)} alt={project.createdBy.name} className="h-10 w-10 rounded-full border-2 border-indigo-100 dark:border-indigo-900" />
-                                        ) : (
-                                            <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-bold text-sm">
-                                                {project.createdBy?.name?.charAt(0) || 'O'}
-                                            </div>
-                                        )}
-                                        <div className="ml-3">
-                                            <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{project.createdBy?.name}</p>
-                                            <div className="flex items-center gap-1">
-                                                <span className="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded text-[10px] font-bold uppercase">Owner</span>
-                                            </div>
-                                        </div>
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                        <CheckCircle className="h-4 w-4 text-blue-500" />
+                                        <span>Payment method verified</span>
                                     </div>
-
-                                    {/* Divider */}
-                                    {project.assignedTo?.length > 0 && <div className="h-px bg-gray-100 dark:bg-gray-700 my-2"></div>}
-
-                                    {/* Members */}
-                                    {project.assignedTo?.map((member) => (
-                                        <div key={member._id} className="flex items-center group cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-colors">
-                                            {member.avatar ? (
-                                                <img src={(member.avatar.startsWith('http') ? member.avatar : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${member.avatar}`)} alt={member.name} className="h-10 w-10 rounded-full border-2 border-white dark:border-gray-600" />
-                                            ) : (
-                                                <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-300 font-bold text-sm">
-                                                    {member.name?.charAt(0)}
-                                                </div>
-                                            )}
-                                            <div className="ml-3">
-                                                <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{member.name}</p>
-                                                <p className="text-xs text-gray-500">{member.title || 'Member'}</p>
-                                            </div>
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                        <div className="flex text-green-600">
+                                            <Star className="h-4 w-4 fill-current" />
+                                            <Star className="h-4 w-4 fill-current" />
+                                            <Star className="h-4 w-4 fill-current" />
+                                            <Star className="h-4 w-4 fill-current" />
+                                            <Star className="h-4 w-4 fill-current" />
                                         </div>
-                                    ))}
-                                    {(!project.assignedTo || project.assignedTo.length === 0) && (
-                                        <p className="text-sm text-gray-500 italic p-2 text-center">No other members yet</p>
-                                    )}
+                                        <span>5.00 of 12 reviews</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="font-medium text-gray-900 dark:text-white text-base">United States</p>
+                                        <p className="text-sm text-gray-500">Sarasota 4:12 PM</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="font-medium text-gray-900 dark:text-white text-base">26 Jobs posted</p>
+                                        <p className="text-sm text-gray-500">85% Hire rate, 1 open job</p>
+                                    </div>
+                                    <div className="text-sm text-gray-500 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                        Member since {project.createdBy?.createdAt ? new Date(project.createdBy.createdAt).toLocaleDateString() : 'Feb 2023'}
+                                    </div>
+                                </div>
+                            </section>
+
+                            <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+                                <h3 className="font-medium text-gray-900 dark:text-white mb-2">Job Link</h3>
+                                <div className="flex bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
+                                    <input readOnly value={window.location.href} className="w-full bg-transparent px-3 text-xs text-gray-600 dark:text-gray-300 outline-none" />
+                                    <button className="px-3 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-500">
+                                        <Copy className="h-4 w-4" />
+                                    </button>
                                 </div>
                             </div>
 
-                            {/* Activity Feed */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                                <ActivityFeed projectId={id} />
-                            </div>
                         </div>
-                    </div>
-                ) : (
-                    /* Kanban Board Tab */
-                    <KanbanBoard
-                        projectId={id}
-                        tasks={project.tasks || []}
-                        members={[project.createdBy, ...(project.assignedTo || [])].filter(Boolean)}
-
-                        onTaskUpdate={fetchProjectData}
-                        readOnly={!isOwner && !isMember}
-                    />
-                )}
+                    )}
+                    {/* Incoming requests modal overlay or section could be added here if needed, keeping it simple for now */}
+                    <AnimatePresence>
+                        {showRequestForm && !isOwner && !isMember && activeTab === 'overview' && (
+                            <motion.div
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                            >
+                                <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-lg p-6 relative">
+                                    <button onClick={() => setShowRequestForm(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-500">
+                                        <X className="h-5 w-5" />
+                                    </button>
+                                    <h2 className="text-xl font-bold mb-4">Submit a Proposal</h2>
+                                    <form onSubmit={handleJoinRequest} className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Cover Letter</label>
+                                            <textarea
+                                                className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent focus:ring-2 focus:ring-green-500 h-32 resize-none"
+                                                placeholder="Introduce yourself and explain why you're a good fit..."
+                                                value={requestMessage}
+                                                onChange={(e) => setRequestMessage(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="flex justify-end gap-3">
+                                            <Button type="button" variant="secondary" onClick={() => setShowRequestForm(false)}>Cancel</Button>
+                                            <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white border-transparent">Submit Proposal</Button>
+                                        </div>
+                                    </form>
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
         </div>
     );

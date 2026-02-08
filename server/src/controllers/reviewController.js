@@ -54,6 +54,7 @@ exports.addReview = async (req, res) => {
         const review = await Review.create({
             reviewer: req.user.id,
             reviewee: revieweeId,
+            project: projectId,
             rating,
             comment
         });

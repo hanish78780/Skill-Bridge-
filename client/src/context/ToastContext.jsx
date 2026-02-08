@@ -35,7 +35,7 @@ export const ToastProvider = ({ children }) => {
         <ToastContext.Provider value={{ addToast, removeToast, error, success, warning, info }}>
             {children}
             {createPortal(
-                <div className="fixed bottom-0 right-0 p-6 flex flex-col gap-2 z-50 pointer-events-none sm:p-6 w-full sm:w-auto sm:items-end">
+                <div className="fixed top-5 left-1/2 transform -translate-x-1/2 flex flex-col gap-2 z-[100] pointer-events-none w-full max-w-sm items-center">
                     <AnimatePresence>
                         {toasts.map((toast) => (
                             <Toast key={toast.id} {...toast} onClose={removeToast} />

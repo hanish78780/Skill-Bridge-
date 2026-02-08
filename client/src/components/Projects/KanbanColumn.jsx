@@ -1,116 +1,109 @@
-import React from 'react';
 import { Droppable } from '@hello-pangea/dnd';
-import clsx from 'clsx';
-import { Plus, MoreHorizontal, Inbox, CircleDashed, CheckCircle2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import KanbanTask from './KanbanTask';
 
-const COLUMN_CONFIG = {
-    'todo': { label: 'To Do', color: 'gray', icon: Inbox, badge: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' },
-    'in-progress': { label: 'In Progress', color: 'blue', icon: CircleDashed, badge: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300' },
-    'done': { label: 'Done', color: 'green', icon: CheckCircle2, badge: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-300' }
-};
-
-const KanbanColumn = ({ colId, column, tasks, isAdding, onAddClick, onTaskClick, newTaskContent, setNewTaskContent, handleAddTask, cancelAdd, provided, readOnly = false }) => {
-    const config = COLUMN_CONFIG[colId] || COLUMN_CONFIG['todo'];
-    const Icon = config.icon;
-
+const KanbanColumn = ({
+    colId,
+    column,
+    tasks,
+    isAdding,
+    onAddClick,
+    onTaskClick,
+    newTaskContent,
+    setNewTaskContent,
+    handleAddTask,
+    cancelAdd,
+    readOnly
+}) => {
     return (
-        <div className="flex-1 min-w-[320px] bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl flex flex-col h-full border border-gray-200/50 dark:border-gray-700/50">
-            {/* Header */}
-            <div className="p-4 flex items-center justify-between group">
-                <div className="flex items-center gap-3">
-                    <h3 className="font-bold text-gray-700 dark:text-gray-200 text-sm flex items-center gap-2">
-                        <Icon className={clsx("h-4 w-4", `text-${config.color}-500`)} />
-                        {column.title}
-                    </h3>
-                    <span className={clsx("text-xs font-bold px-2 py-0.5 rounded-full min-w-[24px] text-center", config.badge)}>
+        <div className="flex flex-col w-80 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 h-full max-h-full">
+            {/* Column Header */}
+            <div className={`p-4 border-b border-gray-100 dark:border-gray-700 font-bold flex justify-between items-center ${colId === 'todo' ? 'text-indigo-600 dark:text-indigo-400' :
+                    colId === 'in-progress' ? 'text-orange-600 dark:text-orange-400' :
+                        'text-green-600 dark:text-green-400'
+                }`}>
+                <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${colId === 'todo' ? 'bg-indigo-500' :
+                            colId === 'in-progress' ? 'bg-orange-500' :
+                                'bg-green-500'
+                        }`} />
+                    {column.title}
+                    <span className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-2 py-0.5 rounded-full ml-1">
                         {column.taskIds.length}
                     </span>
                 </div>
-                {!readOnly && (
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={onAddClick} className="p-1 hover:bg-white dark:hover:bg-gray-700 rounded text-gray-400 hover:text-gray-600">
-                            <Plus className="h-4 w-4" />
-                        </button>
-                        <button className="p-1 hover:bg-white dark:hover:bg-gray-700 rounded text-gray-400 hover:text-gray-600">
-                            <MoreHorizontal className="h-4 w-4" />
-                        </button>
-                    </div>
+                {!readOnly && colId === 'todo' && (
+                    <button
+                        onClick={onAddClick}
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                        title="Add Task"
+                    >
+                        <Plus className="h-4 w-4" />
+                    </button>
                 )}
             </div>
 
-            {/* Tasks Area */}
-            <Droppable droppableId={column.id} isDropDisabled={readOnly}>
+            {/* Task List */}
+            <Droppable droppableId={colId}>
                 {(provided, snapshot) => (
                     <div
                         {...provided.droppableProps}
                         ref={provided.innerRef}
-                        className={clsx(
-                            "flex-1 p-3 transition-colors rounded-b-2xl overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700",
-                            snapshot.isDraggingOver ? "bg-indigo-50/30 dark:bg-indigo-900/10 ring-2 ring-indigo-500/20 ring-inset" : ""
-                        )}
+                        className={`flex-1 overflow-y-auto p-3 space-y-3 transition-colors ${snapshot.isDraggingOver ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''
+                            }`}
                     >
-                        <div className="space-y-3 min-h-[100px]">
-                            {column.taskIds.map((taskId, index) => {
-                                const task = tasks[taskId];
-                                if (!task) return null;
-                                return (
-                                    <KanbanTask
-                                        key={task.id}
-                                        task={task}
-                                        index={index}
-                                        onClick={onTaskClick}
+                        {column.taskIds.map((taskId, index) => {
+                            const task = tasks[taskId];
+                            if (!task) return null;
+                            return (
+                                <KanbanTask
+                                    key={task.id}
+                                    task={task}
+                                    index={index}
+                                    onClick={() => onTaskClick(task)}
+                                    readOnly={readOnly}
+                                />
+                            );
+                        })}
+                        {provided.placeholder}
+
+                        {/* Add Task Input */}
+                        {isAdding && (
+                            <form onSubmit={handleAddTask} className="mt-2">
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border-2 border-indigo-500 shadow-lg">
+                                    <textarea
+                                        autoFocus
+                                        value={newTaskContent}
+                                        onChange={(e) => setNewTaskContent(e.target.value)}
+                                        placeholder="What needs to be done?"
+                                        className="w-full text-sm bg-transparent border-none focus:ring-0 p-0 text-gray-900 dark:text-white placeholder-gray-400 resize-none mb-3"
+                                        rows="3"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleAddTask(e);
+                                            }
+                                        }}
                                     />
-                                );
-                            })}
-
-                            {provided.placeholder}
-
-                            {/* Empty State */}
-                            {!isAdding && column.taskIds.length === 0 && (
-                                <div className="h-32 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center text-gray-400 gap-2 mb-2">
-                                    <div className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-sm">
-                                        <Plus className="h-5 w-5 opacity-50" />
+                                    <div className="flex justify-end gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={cancelAdd}
+                                            className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={!newTaskContent.trim()}
+                                            className="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-lg shadow-indigo-500/20"
+                                        >
+                                            Add Card
+                                        </button>
                                     </div>
-                                    <span className="text-xs font-medium">No tasks yet</span>
-                                    {!readOnly && (
-                                        <button onClick={onAddClick} className="text-xs text-indigo-600 hover:underline">Add one</button>
-                                    )}
                                 </div>
-                            )}
-
-                            {/* Add Task Form (Inline) */}
-                            {isAdding && colId === 'todo' && !readOnly && (
-                                <div className="mt-2">
-                                    <form onSubmit={handleAddTask} className="bg-white dark:bg-gray-800 p-4 rounded-xl border-2 border-indigo-500 shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200">
-                                        <textarea
-                                            autoFocus
-                                            placeholder="What needs to be done?"
-                                            className="w-full text-sm resize-none outline-none bg-transparent text-gray-900 dark:text-white placeholder-gray-400 mb-3"
-                                            rows="3"
-                                            value={newTaskContent}
-                                            onChange={(e) => setNewTaskContent(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' && !e.shiftKey) {
-                                                    e.preventDefault();
-                                                    handleAddTask(e);
-                                                }
-                                                if (e.key === 'Escape') cancelAdd();
-                                            }}
-                                        />
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex gap-2 text-gray-400">
-                                                {/* Placeholder for priority/tags selector in simpler form */}
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <button type="button" onClick={cancelAdd} className="px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
-                                                <button type="submit" className="px-3 py-1.5 text-xs font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm shadow-indigo-200 dark:shadow-none transition-all">Add Task</button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            )}
-                        </div>
+                            </form>
+                        )}
                     </div>
                 )}
             </Droppable>
