@@ -1,6 +1,8 @@
 import Hero from '../components/Landing/Hero';
 import StatsTicker from '../components/Landing/StatsTicker';
 import HowItWorks from '../components/Landing/HowItWorks';
+import TrustedBy from '../components/Landing/TrustedBy';
+import CreativeShowcase from '../components/Landing/CreativeShowcase';
 import PageTransition from '../components/PageTransition';
 import { motion } from 'framer-motion';
 import { Zap, Code, Users, ArrowRight } from 'lucide-react';
@@ -11,7 +13,9 @@ const Home = () => {
         <PageTransition>
             <div className="overflow-x-hidden">
                 <Hero />
+                <TrustedBy />
                 <StatsTicker />
+                <CreativeShowcase />
                 <HowItWorks />
 
                 {/* Features Grid (Refined) */}
